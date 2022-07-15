@@ -1,0 +1,15 @@
+#
+- base_url: http://api.jym0.com/
+- post:
+    url: home/get_bank_list
+    data: # post的参数
+      client_type: 3
+      unique_code: FA95024A-EC83-46A3-AEE0-3D180795767E
+      app_version: 1.0
+    extract_by_jsonpath:
+      code: $.code
+    validate_by_jsonpath:
+      '$.code':
+        '=': 200
+      '$.msg':
+        'contains': 成功
