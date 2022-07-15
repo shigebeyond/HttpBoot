@@ -1,14 +1,16 @@
-#
+# 基础url
 - base_url: http://api.jym0.com/
+# 发post请求
 - post:
-    url: home/get_bank_list
+    url: home/get_bank_list # url, 实际url会在前面拼接 base_url
     data: # post的参数
       client_type: 3
       unique_code: FA95024A-EC83-46A3-AEE0-3D180795767E
       app_version: 1.0
-    extract_by_jsonpath:
+      v: ${random_int(6)} # 可以带变量或表达式
+    extract_by_jsonpath: # 从响应中提取变量
       code: $.code
-    validate_by_jsonpath:
+    validate_by_jsonpath: # 校验响应中的数据
       '$.code':
         '=': 200
       '$.msg':
