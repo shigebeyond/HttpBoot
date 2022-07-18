@@ -4,8 +4,8 @@ from .validator import Validator
 from .boot import Boot
 
 __author__ = "shigebeyond"
-__version__ = "1.0.1"
-__description__ = "HttpBoot: make an easy way (yaml) to app automation testing"
+__version__ = "1.0.2"
+__description__ = "HttpBoot: make an easy way (yaml) to HTTP(S) API automation testing"
 
 __all__ = [
     "__author__",
