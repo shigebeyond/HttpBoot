@@ -15,28 +15,6 @@ import validator
 import extractor
 from helpers import *
 
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.select import Select
-from selenium.webdriver.common.actions.mouse_button import MouseButton
-from selenium.webdriver.common.action_chains import ActionChains
-
-from appium import webdriver
-from selenium.webdriver.common.by import By
-from appium.webdriver.common.touch_action import TouchAction
-from appium.webdriver.webelement import WebElement
-from selenium.webdriver.remote.webdriver import WebDriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
-
-# 扩展WebElement方法
-def get_text_or_content(self):
-    r = self.text
-    if r != '':
-        return r
-    return self.get_attribute("content-desc")
-WebElement.get_text_or_content = get_text_or_content
-
 # 跳出循环的异常
 class BreakException(Exception):
     def __init__(self, condition):
