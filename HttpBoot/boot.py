@@ -16,6 +16,13 @@ import extractor
 from helpers import *
 from requests.sessions import Session
 import curlify
+import threading
+import datetime
+
+# 记录响应时间
+res_times = []
+# 错误次数
+err_num = 0
 
 # 改造 requests.Session.request() -- 支持打印curl + fix get请求不能传递data + fix不能传递cookie
 request1 = Session.request
@@ -39,6 +46,11 @@ def request2(self, method, url, name=None, **kwargs):
         kwargs['cookies'] = dict([l.split("=", 1) for l in cookie.split("; ")])  # cookie字符串转化为字典
 
     res = request1(self, method, url, name, **kwargs)
+
+    # 记录响应时间
+    res_times.append(res.elapsed.total_seconds())
+
+    # 打印curl
     cmd = curlify.to_curl(res.request)
     print('发送请求：' + cmd)
     return res
@@ -82,6 +94,7 @@ class Boot(object):
             'include': self.include,
             'set_vars': self.set_vars,
             'print_vars': self.print_vars,
+            'parallel': self.parallel,
         }
         set_var('boot', self)
         # 当前url
@@ -168,6 +181,11 @@ class Boot(object):
             self.do_for(param, n)
             return
 
+        if 'parallel(' in action:
+            n = int(action[4:-1])
+            self.parallel(param, n)
+            return
+
         if action not in self.actions:
             raise Exception(f'无效动作: [{action}]')
 
@@ -177,6 +195,50 @@ class Boot(object):
         func(param)
 
     # --------- 动作处理的函数 --------
+    # 并行测试
+    # :param steps 每个迭代中要执行的步骤
+    # :param n 并行数
+    def parallel(self, steps, n = None):
+        label = f"parallel({n})"
+        if n == None:
+            raise Exception(f'并行动作必须指定并行数')
+
+        # 清空响应时间+错误次数
+        res_times.clear()
+        err_num = 0
+
+        # 开始并行
+        def run_thread():
+            global err_num
+            try:
+                self.run_steps(steps)
+            except Exception as e:
+                print(e)
+                err_num += 1
+
+        start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        threads = []
+        for i in range(n):
+            # 新启线程执行： self.run_steps(steps)
+            # t = threading.Thread(target=self.run_steps, args=(steps), name="Test" + str(i))
+            t = threading.Thread(target=run_thread, name="Test" + str(i))
+            threads.append(t)
+        for t in range(n):
+            threads[t].start()
+        for j in range(n):
+            threads[j].join()
+
+        print("Starting at:", start_time)
+        print("All done at:", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        print('响应次数：', len(res_times))
+        print('成功次数：', n - err_num)
+        print('错误次数：', err_num)
+        print('总响应最大时长：', max(res_times))
+        print('总响应最小时长：', min(res_times))
+        print('总响应时长：', sum(res_times))
+        print('平均响应时长：', sum(res_times) / len(res_times))
+        print('吞吐量：', n / sum(res_times))
+
     # for循环
     # :param steps 每个迭代中要执行的步骤
     # :param n 循环次数
