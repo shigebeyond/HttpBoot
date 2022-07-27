@@ -14,6 +14,35 @@ import util
 import validator
 import extractor
 from helpers import *
+from requests.sessions import Session
+import curlify
+
+# 改造 requests.Session.request() -- 支持打印curl + fix get请求不能传递data + fix不能传递cookie
+request1 = Session.request
+def request2(self, method, url, name=None, **kwargs):
+    # fix bug： get请求不能传递data
+    if method.upper() == 'GET' and 'data' in kwargs and kwargs['data']:
+        data = kwargs['data']
+        # 将data转为query string
+        if '?' in url:
+            query_string = '&'
+        else:
+            query_string = '?'
+        for k, v in data.items():
+            query_string += f"{k}={v}&"
+        url += query_string
+        kwargs['data'] = None
+
+    # fix bug: 不能传递cookie
+    if 'headers' in kwargs and kwargs['headers'] != None and 'cookie' in kwargs['headers']:
+        cookie = kwargs['headers']['cookie']
+        kwargs['cookies'] = dict([l.split("=", 1) for l in cookie.split("; ")])  # cookie字符串转化为字典
+
+    res = request1(self, method, url, name, **kwargs)
+    cmd = curlify.to_curl(res.request)
+    print('发送请求：' + cmd)
+    return res
+Session.request = request2
 
 # 跳出循环的异常
 class BreakException(Exception):
@@ -57,6 +86,8 @@ class Boot(object):
         set_var('boot', self)
         # 当前url
         self.curr_url = None
+        # 当前session
+        self.session = requests.Session()
 
     '''
     执行入口
@@ -233,7 +264,8 @@ class Boot(object):
     # 设置公共请求参数
     # :param data
     def common_data(self, data):
-        self._common_data = replace_var(data, False)
+        # self.session.params = replace_var(data, False) # 只挂在url的query参数中
+        self._common_data = replace_var(data, False) # 如果是get请求, 则挂在query参数, 否则挂在post参数中
 
     # 构建参数
     def _get_data(self, config):
@@ -254,6 +286,8 @@ class Boot(object):
     # 设置公共请求头
     # :param headers
     def common_headers(self, headers):
+        # 经测试:两种实现是一样效果的
+        # self.session.headers = replace_var(headers, False)
         self._common_headers = replace_var(headers, False)
 
     # 构建参数
@@ -278,7 +312,7 @@ class Boot(object):
         url = self._get_url(config)
         data = self._get_data(config)
         headers = self._get_headers(config)
-        res = requests.get(url, headers=headers, data=data)
+        res = self.session.get(url, headers=headers, data=data)
         # print(res.text)
         # 解析响应
         self._analyze_response(res, config)
@@ -289,7 +323,7 @@ class Boot(object):
         url = self._get_url(config)
         data = self._get_data(config)
         headers = self._get_headers(config)
-        res = requests.post(url, headers=headers, data=data)
+        res = self.session.post(url, headers=headers, data=data)
         # 解析响应
         self._analyze_response(res, config)
 
@@ -304,7 +338,7 @@ class Boot(object):
             path = replace_var(path)
             files[name] = open(path, 'rb')
         # 发请求
-        res = requests.post(url, headers=headers, files=files)
+        res = self.session.post(url, headers=headers, files=files)
         # 解析响应
         self._analyze_response(res, config)
 
@@ -322,7 +356,7 @@ class Boot(object):
             return self.downloaded_files[url]
 
         # 发请求
-        res = requests.get(url, headers=headers, data=data)
+        res = self.session.get(url, headers=headers, data=data)
 
         # 保存响应的文件
         write_byte_file(save_file, res.content)

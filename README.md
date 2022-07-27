@@ -99,7 +99,8 @@ incr(key): 自增值，从1开始，参数key表示不同的自增值，不同ke
 base_url: https://www.taobao.com/
 ```
 
-4. common_data: 设置公共请求参数
+4. common_data: 设置公共请求参数;
+如果是get请求, 则挂在query参数, 否则挂在post参数中
 ```yaml
 common_data:
     uid: 1

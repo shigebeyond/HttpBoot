@@ -1,0 +1,29 @@
+# 基础url
+- base_url: http://admin.jym0.com/
+# 刷新验证码
+- get:
+    url: login/verify_image # url, 实际url会在前面拼接 base_url
+# 获得验证码，用在测试环境中
+- get:
+    url: login/verify_code
+    extract_by_jsonpath: # 从响应中提取变量
+      code: $.data.code
+# 登录
+- post:
+    url: login/check
+    data: # post的参数
+      account: 18877310999
+      passwd: e10adc3949ba59abbe56e057f20f883e
+      verify_text: $code
+    validate_by_jsonpath: # 校验响应中的数据
+      '$.msg':
+        'contains': 成功
+# 首页
+- get:
+    url: home/
+    # 获得登录时间
+    extract_by_css:
+      login_time: '.last-login-time'
+#    extract_by_xpath:
+#      login_time: '/html/body/header/div/div/a[1]/div/div[2]'
+  print: $login_time
