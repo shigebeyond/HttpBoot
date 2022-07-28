@@ -1,6 +1,6 @@
 [GitHub](https://github.com/shigebeyond/HttpBoot) | [Gitee](https://gitee.com/shigebeyond/HttpBoot)
 
-# HttpBoot - yaml驱动http接口测试
+# HttpBoot - yaml驱动http接口自动化测试+压力测试
 
 ## 概述
 一般测试http接口，要写python代码；
