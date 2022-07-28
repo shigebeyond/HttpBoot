@@ -56,8 +56,8 @@ class BreakException(Exception):
     def __init__(self, condition):
         self.condition = condition # 跳转条件
 
-# appium基于yaml的启动器
-class Boot(object):
+# http接口基于yaml的启动器
+class HttpBoot(object):
 
     def __init__(self):
         # 步骤文件所在的目录
@@ -493,7 +493,7 @@ class Boot(object):
 # cli入口
 def main():
     # 基于yaml的执行器
-    boot = Boot()
+    boot = HttpBoot()
     # 步骤配置的yaml
     if len(sys.argv) > 1:
         step_files = sys.argv[1:]

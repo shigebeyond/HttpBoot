@@ -1,7 +1,7 @@
 from .response_wrapper import ResponseWrap
 from .extractor import Extractor
 from .validator import Validator
-from .boot import Boot
+from .http_boot import HttpBoot
 
 __author__ = "shigebeyond"
 __version__ = "1.0.2"
@@ -14,5 +14,5 @@ __all__ = [
     "ResponseWrap",
     "Extractor",
     "Validator",
-    "Boot",
+    "HttpBoot",
 ]
