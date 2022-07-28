@@ -19,11 +19,12 @@
       '$.msg':
         'contains': 成功
 # 首页
-- get:
-    url: home/
-    # 获得登录时间
-    extract_by_css:
-      login_time: '.last-login-time'
-#    extract_by_xpath:
-#      login_time: '/html/body/header/div/div/a[1]/div/div[2]'
-  print: $login_time
+- parallel(5,100):
+  - get:
+      url: home/
+      # 获得登录时间
+      extract_by_css:
+        login_time: '.last-login-time'
+  #    extract_by_xpath:
+  #      login_time: '/html/body/header/div/div/a[1]/div/div[2]'
+    print: $login_time

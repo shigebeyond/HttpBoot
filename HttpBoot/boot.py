@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import time
+import gevent
 import sys
 import os
 import fnmatch
@@ -14,15 +15,11 @@ import util
 import validator
 import extractor
 from helpers import *
+from locust.clients import HttpSession
 from requests.sessions import Session
 import curlify
 import threading
 import datetime
-
-# 记录响应时间
-res_times = []
-# 错误次数
-err_num = 0
 
 # 改造 requests.Session.request() -- 支持打印curl + fix get请求不能传递data + fix不能传递cookie
 request1 = Session.request
@@ -45,10 +42,8 @@ def request2(self, method, url, name=None, **kwargs):
         cookie = kwargs['headers']['cookie']
         kwargs['cookies'] = dict([l.split("=", 1) for l in cookie.split("; ")])  # cookie字符串转化为字典
 
+    # 请求
     res = request1(self, method, url, name, **kwargs)
-
-    # 记录响应时间
-    res_times.append(res.elapsed.total_seconds())
 
     # 打印curl
     cmd = curlify.to_curl(res.request)
@@ -101,6 +96,10 @@ class Boot(object):
         self.curr_url = None
         # 当前session
         self.session = requests.Session()
+        # 记录响应时间
+        self.res_times = []
+        # 错误次数
+        self.err_num = 0
 
     '''
     执行入口
@@ -182,8 +181,8 @@ class Boot(object):
             return
 
         if 'parallel(' in action:
-            n = int(action[4:-1])
-            self.parallel(param, n)
+            concurrency, req_num = action[9:-1].split(',')
+            self.parallel(param, int(concurrency), int(req_num))
             return
 
         if action not in self.actions:
@@ -195,49 +194,57 @@ class Boot(object):
         func(param)
 
     # --------- 动作处理的函数 --------
-    # 并行测试
+    # 并发测试
     # :param steps 每个迭代中要执行的步骤
-    # :param n 并行数
-    def parallel(self, steps, n = None):
-        label = f"parallel({n})"
-        if n == None:
-            raise Exception(f'并行动作必须指定并行数')
+    # :param concurrency 并发数
+    # :param req_num 每个线程的请求数
+    def parallel(self, steps, concurrency = None, req_num = 1):
+        if concurrency == None:
+            raise Exception(f'并发动作必须指定并发数')
 
+        print(f"-- 开始 parallel({concurrency},{req_num}) --")
         # 清空响应时间+错误次数
-        res_times.clear()
-        err_num = 0
+        self.res_times.clear()
+        self.err_num = 0
 
-        # 开始并行
+        # 每个线程的处理
         def run_thread():
-            global err_num
-            try:
-                self.run_steps(steps)
-            except Exception as e:
-                print(e)
-                err_num += 1
+            for i in range(0, req_num):
+                t1 = time.time()
+                try:
+                    self.run_steps(steps)
+                except Exception as e:
+                    print(e)
+                    self.err_num += 1
+                finally:
+                    t2 = time.time()
+                    # 记录响应时间
+                    self.res_times.append(t2 - t1)
 
-        start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        # 创建并发的线程
+        t1 = time.time()
         threads = []
-        for i in range(n):
+        for i in range(concurrency):
             # 新启线程执行： self.run_steps(steps)
             # t = threading.Thread(target=self.run_steps, args=(steps), name="Test" + str(i))
             t = threading.Thread(target=run_thread, name="Test" + str(i))
             threads.append(t)
-        for t in range(n):
+        for t in range(concurrency):
             threads[t].start()
-        for j in range(n):
+        for j in range(concurrency):
             threads[j].join()
-
-        print("Starting at:", start_time)
-        print("All done at:", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        print('响应次数：', len(res_times))
-        print('成功次数：', n - err_num)
-        print('错误次数：', err_num)
-        print('总响应最大时长：', max(res_times))
-        print('总响应最小时长：', min(res_times))
-        print('总响应时长：', sum(res_times))
-        print('平均响应时长：', sum(res_times) / len(res_times))
-        print('吞吐量：', n / sum(res_times))
+        t2 = time.time()
+        n = len(self.res_times)
+        cost_time = t2 - t1
+        print(f"-- 结束 parallel({concurrency},{req_num}) --")
+        print("总耗时(秒):", cost_time)
+        print('响应次数:', n)
+        print('成功次数:', n - self.err_num)
+        print('错误次数:', self.err_num)
+        print('最大耗时(秒):', max(self.res_times))
+        print('最小耗时(秒):', min(self.res_times))
+        print('平均耗时(秒):', sum(self.res_times) / n)
+        print('吞吐量:', n / cost_time)
 
     # for循环
     # :param steps 每个迭代中要执行的步骤
@@ -291,7 +298,10 @@ class Boot(object):
     # 睡眠
     def sleep(self, seconds):
         seconds = replace_var(seconds)  # 替换变量
-        time.sleep(int(seconds))
+        if isinstance(self.session, HttpSession): # 如果是locust场景, 则挂起协程
+            gevent.sleep(seconds)
+        else:
+            time.sleep(int(seconds))
 
     # 打印
     def print(self, msg):

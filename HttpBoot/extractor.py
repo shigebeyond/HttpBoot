@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from requests import Response
-import util
 import response_wrapper
 from util import set_var,get_var
 import json # eval 可能会用到

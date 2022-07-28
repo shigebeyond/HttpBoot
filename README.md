@@ -167,7 +167,8 @@ for动作下包含一系列子步骤，表示循环执行这系列子步骤；�
 # 循环3次
 for(3) :
   # 每次迭代要执行的子步骤
-  - swipe_down:
+  - get:
+      url: https://www.baidu.com
     sleep: 2
 
 # 无限循环，直到遇到跳出动作
@@ -175,7 +176,8 @@ for(3) :
 for:
   # 每次迭代要执行的子步骤
   - break_if: for_i>2 # 满足条件则跳出循环
-    swipe_down:
+    get:
+      url: https://www.baidu.com
     sleep: 2
 ```
 
@@ -185,7 +187,8 @@ once 结合 moveon_if，可以模拟 python 的 `if` 语法效果
 once:
   # 每次迭代要执行的子步骤
   - moveon_if: for_i<=2 # 满足条件则往下走，否则跳出循环
-    swipe_down:
+    get:
+      url: https://www.baidu.com
     sleep: 2
 ```
 
@@ -201,12 +204,20 @@ break_if: for_i>2 # 条件表达式，python语法
 moveon_if: for_i<=2 # 条件表达式，python语法
 ```
 
-15. include: 包含其他步骤文件，如记录公共的步骤，或记录配置数据(如用户名密码); 
+15. 并发处理 
+```yaml
+parallel(5,10): # 并发线程数为5, 每线程处理请求数据为10
+  # 每次迭代要执行的子步骤
+  - get:
+      url: https://www.baidu.com
+```
+
+16. include: 包含其他步骤文件，如记录公共的步骤，或记录配置数据(如用户名密码); 
 ```yaml
 include: part-common.yml
 ```
 
-16. set_vars: 设置变量; 
+17. set_vars: 设置变量; 
 ```yaml
 set_vars:
   name: shi
@@ -214,7 +225,7 @@ set_vars:
   birthday: 5-27
 ```
 
-17. print_vars: 打印所有变量; 
+18. print_vars: 打印所有变量; 
 ```yaml
 print_vars:
 ```
