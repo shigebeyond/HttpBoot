@@ -49,7 +49,7 @@ setup(
     # 把python中的函数自动生成为一个可执行的脚本
     entry_points={
         'console_scripts': [
-            'HttpBoot=HttpBoot.http_boot:main' # 格式为'命令名 = 模块名:函数名'
+            'HttpBoot=HttpBoot.http_boot:main', # 格式为'命令名 = 模块名:函数名'
             'LocustBoot=LocustBoot.locust_boot:main'
         ]
     },

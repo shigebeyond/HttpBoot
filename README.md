@@ -22,6 +22,8 @@
 4. 支持识别验证码(使用有道ocr)
 5. 支持类似python`for`/`if`/`break`语义的步骤动作，灵活适应各种场景
 6. 支持`include`引用其他的yaml配置文件，以便解耦与复用
+7. 支持用多线程来并发测试
+8. 整合locust来做压力测试
 
 ## todo
 1. 支持更多的动作
@@ -30,6 +32,9 @@
 ```
 pip3 install HttpBoot
 ```
+
+## 整合locust
+参考[整合locust](locust.md)
 
 ## 使用
 ```
@@ -46,14 +51,12 @@ HttpBoot 步骤配置目录
 HttpBoot 步骤配置目录/step-*.yml
 ```
 
-## 步骤配置文件demo
+## 步骤配置文件及demo
 用于指定多个步骤, 示例见源码 [example](https://github.com/shigebeyond/HttpBoot/tree/main/example) 目录下的文件;
 
 顶级的元素是步骤;
 
 每个步骤里有多个动作(如sleep)，如果动作有重名，就另外新开一个步骤写动作，这是由yaml语法限制导致的，但不影响步骤执行。
-
-[demo](https://github.com/shigebeyond/HttpBoot/blob/main/example/)
 
 ## 配置详解
 支持通过yaml来配置执行的步骤;
@@ -206,7 +209,7 @@ moveon_if: for_i<=2 # 条件表达式，python语法
 
 15. 并发处理 
 ```yaml
-parallel(5,10): # 并发线程数为5, 每线程处理请求数据为10
+concurrent(5,10): # 并发线程数为5, 每线程处理请求数据为10
   # 每次迭代要执行的子步骤
   - get:
       url: https://www.baidu.com

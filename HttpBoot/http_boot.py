@@ -89,7 +89,7 @@ class HttpBoot(object):
             'include': self.include,
             'set_vars': self.set_vars,
             'print_vars': self.print_vars,
-            'parallel': self.parallel,
+            'concurrent': self.concurrent,
         }
         set_var('boot', self)
         # 当前url
@@ -180,9 +180,9 @@ class HttpBoot(object):
             self.do_for(param, n)
             return
 
-        if 'parallel(' in action:
+        if 'concurrent(' in action:
             concurrency, req_num = action[9:-1].split(',')
-            self.parallel(param, int(concurrency), int(req_num))
+            self.concurrent(param, int(concurrency), int(req_num))
             return
 
         if action not in self.actions:
@@ -198,11 +198,11 @@ class HttpBoot(object):
     # :param steps 每个迭代中要执行的步骤
     # :param concurrency 并发数
     # :param req_num 每个线程的请求数
-    def parallel(self, steps, concurrency = None, req_num = 1):
+    def concurrent(self, steps, concurrency = None, req_num = 1):
         if concurrency == None:
             raise Exception(f'并发动作必须指定并发数')
 
-        print(f"-- 开始 parallel({concurrency},{req_num}) --")
+        print(f"-- 开始 concurrent({concurrency},{req_num}) --")
         # 清空响应时间+错误次数
         self.res_times.clear()
         self.err_num = 0
@@ -236,7 +236,7 @@ class HttpBoot(object):
         t2 = time.time()
         n = len(self.res_times)
         cost_time = t2 - t1
-        print(f"-- 结束 parallel({concurrency},{req_num}) --")
+        print(f"-- 结束 concurrent({concurrency},{req_num}) --")
         print("总耗时(秒):", cost_time)
         print('响应次数:', n)
         print('成功次数:', n - self.err_num)

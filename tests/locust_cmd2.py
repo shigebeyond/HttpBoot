@@ -21,4 +21,4 @@ class WebsiteUser(HttpUser):
         print('start')
 
 if __name__ == '__main__':
-    os.system(r'locust -f ' + __file__)
+    os.system(f'locust -f {__file__}')

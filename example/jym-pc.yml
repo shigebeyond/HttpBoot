@@ -19,7 +19,7 @@
       '$.msg':
         'contains': 成功
 # 首页
-- parallel(5,100):
+- concurrent(5,100):
   - get:
       url: home/
       # 获得登录时间
