@@ -50,7 +50,7 @@ setup(
     entry_points={
         'console_scripts': [
             'HttpBoot=HttpBoot.http_boot:main', # 格式为'命令名 = 模块名:函数名'
-            'LocustBoot=HttpBoot.locust_boot:lmain'
+            'LocustBoot=HttpBoot.locust_main:main'
         ]
     },
 )
