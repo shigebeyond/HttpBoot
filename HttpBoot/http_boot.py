@@ -276,7 +276,7 @@ class HttpBoot(object):
 
     # 跳出for循环
     def break_if(self, expr):
-        val = eval(expr, globals(), vars)  # 丢失本地与全局变量, 如引用不了json模块
+        val = eval(expr, globals(), bvars)  # 丢失本地与全局变量, 如引用不了json模块
         if bool(val):
             raise BreakException(expr)
 
@@ -292,7 +292,7 @@ class HttpBoot(object):
 
     # 打印变量
     def print_vars(self, _):
-        print(f"打印变量: {vars}")
+        print(f"打印变量: {bvars}")
 
     # 睡眠
     def sleep(self, seconds):

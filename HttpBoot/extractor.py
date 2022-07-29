@@ -3,7 +3,7 @@
 
 from requests import Response
 from HttpBoot.response_wrapper import ResponseWrap
-from HttpBoot.util import set_var,get_var
+from HttpBoot.util import *
 import json # eval 可能会用到
 import re
 
@@ -49,7 +49,7 @@ class Extractor(ResponseWrap):
     def run_eval(self, fields):
         for var, expr in fields.items():
             # 获得字段值
-            val = eval(expr, globals(), util.vars) # 丢失本地与全局变量, 如引用不了json模块
+            val = eval(expr, globals(), bvars) # 丢失本地与全局变量, 如引用不了json模块
             # 抽取单个字段
             set_var(var, val)
             print(f"抽取参数: {var}={val}")
