@@ -5,6 +5,17 @@
 LocustBoot 任务配置文件.yml
 ```
 
+如执行`LocustBoot example/locust-jym-api.yml`， 输出如下
+```
+/usr/local/lib/python3.7/dist-packages/locust/__init__.py:11: MonkeyPatchWarning: Monkey-patching ssl after ssl has already been imported may lead to errors, including RecursionError on Python 3.6. It may also silently lead to incorrect behaviour on Python 3.7. Please monkey-patch earlier. See https://github.com/gevent/gevent/issues/1016. Modules that had direct imports (NOT patched): ['urllib3.util (/home/shi/.local/lib/python3.7/site-packages/urllib3/util/__init__.py)', 'urllib3.util.ssl_ (/home/shi/.local/lib/python3.7/site-packages/urllib3/util/ssl_.py)']. 
+  monkey.patch_all()
+locust -f /home/shi/.local/lib/python3.7/site-packages/HttpBoot/locust_boot.py -b example/locust-jym-api.yml
+[2022-07-29 11:08:32,414] shi-PC/INFO/locust.main: Starting web interface at http://0.0.0.0:8089 (accepting connections from all network interfaces)
+[2022-07-29 11:08:32,423] shi-PC/INFO/locust.main: Starting Locust 2.10.1
+```
+
+然后直接访问 http://localhost:8089/，就能操作locust服务
+
 ## 任务配置文件及demo
 用于指定 locust 任务, 示例见源码 [example/locust-jym-api.yml](https://github.com/shigebeyond/HttpBoot/tree/main/example/locust-jym-api.yml);
 

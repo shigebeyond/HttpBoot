@@ -51,6 +51,21 @@ HttpBoot 步骤配置目录
 HttpBoot 步骤配置目录/step-*.yml
 ```
 
+如执行 `HttpBoot example/jym-api.yml`，输出如下
+```
+/usr/local/lib/python3.7/dist-packages/locust/__init__.py:11: MonkeyPatchWarning: Monkey-patching ssl after ssl has already been imported may lead to errors, including RecursionError on Python 3.6. It may also silently lead to incorrect behaviour on Python 3.7. Please monkey-patch earlier. See https://github.com/gevent/gevent/issues/1016. Modules that had direct imports (NOT patched): ['urllib3.util (/home/shi/.local/lib/python3.7/site-packages/urllib3/util/__init__.py)', 'urllib3.util.ssl_ (/home/shi/.local/lib/python3.7/site-packages/urllib3/util/ssl_.py)']. 
+  monkey.patch_all()
+加载并执行步骤文件: /ohome/shi/code/python/HttpBoot/example/jym-api.yml
+处理动作: base_url=http://api.jym0.com/
+处理动作: get={'url': 'home/'}
+发送请求：curl -X GET -H 'Accept: */*' -H 'Accept-Encoding: gzip, deflate, br' -H 'Connection: keep-alive' -H 'User-Agent: python-requests/2.27.1' http://api.jym0.com/home/
+处理动作: post={'url': 'home/get_bank_list', 'data': {'client_type': 3, 'unique_code': 'FA95024A-EC83-46A3-AEE0-3D180795767E', 'app_version': 1.0, 'v': '${random_int(6)}'}, 'extract_by_jsonpath': {'code': ode'}, 'validate_by_jsonpath': {'$.code': {'=': 200}, '$.msg': {'contains': '成功'}}}
+发送请求：curl -X POST -H 'Accept: */*' -H 'Accept-Encoding: gzip, deflate, br' -H 'Connection: keep-alive' -H 'Content-Length: 87' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Cookie: ci_sessifgns2l8q0r8f8s0ntbrg96th0aar7m' -H 'User-Agent: python-requests/2.27.1' -d 'client_type=3&unique_code=FA95024A-EC83-46A3-AEE0-3D180795767E&app_version=1.0&v=154262' http://api.jym0.com/home/get_bank_list
+处理校验函数: ==200
+处理校验函数: contains=成功
+从响应中抽取参数: code=200
+```
+
 ## 步骤配置文件及demo
 用于指定多个步骤, 示例见源码 [example](https://github.com/shigebeyond/HttpBoot/tree/main/example) 目录下的文件;
 
