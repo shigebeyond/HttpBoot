@@ -4,6 +4,7 @@
 import re
 from HttpBoot.response_wrapper import ResponseWrap
 from requests import Response
+from pyutilb import log
 
 # 校验器
 class Validator(ResponseWrap):
@@ -69,6 +70,6 @@ class Validator(ResponseWrap):
         if func not in self.funcs:
             raise Exception(f'无效校验函数: {func}')
         # 调用校验函数
-        print(f"处理校验函数: {func}={param}")
+        log.debug(f"处理校验函数: {func}={param}")
         func = self.funcs[func]
         return func(val, param)

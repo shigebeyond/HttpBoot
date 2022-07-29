@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+from pyutilb import log
 
 def main():
     # 步骤yaml
@@ -16,7 +17,7 @@ def main():
 
     # 执行locust命令
     cmd = f'locust -f {locust_file} -b {yml_file}'
-    print(cmd)
+    log.debug(cmd)
     os.system(cmd)
 
 if __name__ == '__main__':

@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import os
 import sys
-from locust import HttpUser, TaskSet, task, argument_parser,events
-from HttpBoot.util import *
+from locust import HttpUser, argument_parser,events
+from pyutilb.util import *
 from HttpBoot.http_boot import HttpBoot
+
 
 # 将步骤yml添加为locust参数, 这样locust命令才不会校验报错
 @events.init_command_line_parser.add_listener
@@ -19,7 +19,7 @@ def _(parser):
     )
 # 解析locust参数, 获得步骤yml
 options = argument_parser.parse_options(sys.argv)
-# print(options.bootyml)
+# log.debug(options.bootyml)
 
 # 读取步骤yml
 config_file = os.path.abspath(options.bootyml)

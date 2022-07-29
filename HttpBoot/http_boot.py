@@ -1,24 +1,18 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import time
 import gevent
 import sys
-import os
 import fnmatch
-from pathlib import Path
 import requests
-from HttpBoot.ocr import *
-from HttpBoot.util import *
-import base64
+from pyutilb.util import *
 from HttpBoot.validator import Validator
 from HttpBoot.extractor import Extractor
-from HttpBoot.helpers import *
 from locust.clients import HttpSession
 from requests.sessions import Session
 import curlify
 import threading
-import datetime
+from pyutilb import log, ocr_youdao
 
 # 改造 requests.Session.request() -- 支持打印curl + fix get请求不能传递data + fix不能传递cookie
 request1 = Session.request
@@ -46,7 +40,7 @@ def request2(self, method, url, name=None, **kwargs):
 
     # 打印curl
     cmd = curlify.to_curl(res.request)
-    print('发送请求：' + cmd)
+    log.debug('发送请求：' + cmd)
     return res
 Session.request = request2
 
@@ -151,14 +145,14 @@ class HttpBoot(object):
             step_file = os.path.abspath(step_file)
             self.step_dir = os.path.dirname(step_file)
 
-        print(f"加载并执行步骤文件: {step_file}")
+        log.debug(f"加载并执行步骤文件: {step_file}")
         # 获得步骤
         steps = read_yaml(step_file)
         try:
             # 执行多个步骤
             self.run_steps(steps)
         except Exception as ex:
-            print(f"异常环境:当前步骤文件为 {step_file}, 当前请求url为 {self.curr_url}")
+            log.debug(f"异常环境:当前步骤文件为 {step_file}, 当前请求url为 {self.curr_url}")
             raise ex
 
     # 执行多个步骤
@@ -188,7 +182,7 @@ class HttpBoot(object):
             raise Exception(f'无效动作: [{action}]')
 
         # 调用动作对应的函数
-        print(f"处理动作: {action}={param}")
+        log.debug(f"处理动作: {action}={param}")
         func = self.actions[action]
         func(param)
 
@@ -201,7 +195,7 @@ class HttpBoot(object):
         if concurrency == None:
             raise Exception(f'并发动作必须指定并发数')
 
-        print(f"-- 开始 concurrent({concurrency},{req_num}) --")
+        log.debug(f"-- 开始 concurrent({concurrency},{req_num}) --")
         # 清空响应时间+错误次数
         self.res_times.clear()
         self.err_num = 0
@@ -213,7 +207,7 @@ class HttpBoot(object):
                 try:
                     self.run_steps(steps)
                 except Exception as e:
-                    print(e)
+                    log.debug(e)
                     self.err_num += 1
                 finally:
                     t2 = time.time()
@@ -235,15 +229,15 @@ class HttpBoot(object):
         t2 = time.time()
         n = len(self.res_times)
         cost_time = t2 - t1
-        print(f"-- 结束 concurrent({concurrency},{req_num}) --")
-        print("总耗时(秒):", cost_time)
-        print('响应次数:', n)
-        print('成功次数:', n - self.err_num)
-        print('错误次数:', self.err_num)
-        print('最大耗时(秒):', max(self.res_times))
-        print('最小耗时(秒):', min(self.res_times))
-        print('平均耗时(秒):', sum(self.res_times) / n)
-        print('吞吐量:', n / cost_time)
+        log.debug(f"-- 结束 concurrent({concurrency},{req_num}) --")
+        log.debug("总耗时(秒): %s", cost_time)
+        log.debug('响应次数: %s', n)
+        log.debug('成功次数: %s', n - self.err_num)
+        log.debug('错误次数: %s', self.err_num)
+        log.debug('最大耗时(秒): %s', max(self.res_times))
+        log.debug('最小耗时(秒): %s', min(self.res_times))
+        log.debug('平均耗时(秒): %s', sum(self.res_times) / n)
+        log.debug('吞吐量: %s', n / cost_time)
 
     # for循环
     # :param steps 每个迭代中要执行的步骤
@@ -253,17 +247,17 @@ class HttpBoot(object):
         if n == None:
             n = sys.maxsize # 最大int，等于无限循环次数
             label = f"for(∞)"
-        print(f"-- 开始循环: {label} -- ")
+        log.debug(f"-- 开始循环: {label} -- ")
         try:
             for i in range(n):
                 # i+1表示迭代次数比较容易理解
-                print(f"第{i+1}次迭代")
+                log.debug(f"第{i+1}次迭代")
                 set_var('for_i', i+1)
                 self.run_steps(steps)
         except BreakException as e:  # 跳出循环
-            print(f"-- 跳出循环: {label}, 跳出条件: {e.condition} -- ")
+            log.debug(f"-- 跳出循环: {label}, 跳出条件: {e.condition} -- ")
         else:
-            print(f"-- 终点循环: {label} -- ")
+            log.debug(f"-- 终点循环: {label} -- ")
 
     # 执行一次子步骤，相当于 for(1)
     def once(self, steps):
@@ -292,7 +286,7 @@ class HttpBoot(object):
 
     # 打印变量
     def print_vars(self, _):
-        print(f"打印变量: {bvars}")
+        log.info(f"打印变量: {bvars}")
 
     # 睡眠
     def sleep(self, seconds):
@@ -305,7 +299,7 @@ class HttpBoot(object):
     # 打印
     def print(self, msg):
         msg = replace_var(msg)  # 替换变量
-        print(msg)
+        log.info(msg)
 
     # 解析响应
     def _analyze_response(self, res, config):
@@ -384,7 +378,7 @@ class HttpBoot(object):
         data = self._get_data(config)
         headers = self._get_headers(config)
         res = self.session.get(url, headers=headers, data=data)
-        # print(res.text)
+        # log.debug(res.text)
         # 解析响应
         self._analyze_response(res, config)
 
@@ -434,7 +428,7 @@ class HttpBoot(object):
         # 设置变量
         set_var('download_file', save_file)
         self.downloaded_files[url] = save_file
-        print(f"下载文件: url为{url}, 另存为{save_file}")
+        log.debug(f"下载文件: url为{url}, 另存为{save_file}")
         return save_file
 
     # 获得文件名
@@ -485,7 +479,7 @@ class HttpBoot(object):
         captcha = ocr_youdao.recognize_text(file_path)
         # 设置变量
         set_var('captcha', captcha)
-        print(f"识别验证码: 图片为{file_path}, 验证码为{captcha}")
+        log.debug(f"识别验证码: 图片为{file_path}, 验证码为{captcha}")
         # 删除文件
         #os.remove(file)
 
