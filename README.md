@@ -33,7 +33,9 @@
 pip3 install HttpBoot
 ```
 
-安装后会生成命令`HttpBoot`;
+安装后会生成2个命令
+1. `HttpBoot`: 负责web或http接口自动化测试;
+2. `LocustBoot`: 负责压力测试, 根据yaml配置调用locust来压测。
 
 注： 对于深度deepin-linux系统，生成的命令放在目录`~/.local/bin`，建议将该目录添加到环境变量`PATH`中，如
 ```
