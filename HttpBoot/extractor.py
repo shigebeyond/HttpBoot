@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 from requests import Response
-import response_wrapper
-from util import set_var,get_var
+from HttpBoot.response_wrapper import ResponseWrap
+from HttpBoot.util import set_var,get_var
 import json # eval 可能会用到
 import re
 
 # 抽取器
-class Extractor(response_wrapper.ResponseWrap):
+class Extractor(ResponseWrap):
 
     def __init__(self, res: Response = None):
         super(Extractor, self).__init__(res)

@@ -8,13 +8,12 @@ import os
 import fnmatch
 from pathlib import Path
 import requests
-from ocr import *
-from util import *
+from HttpBoot.ocr import *
+from HttpBoot.util import *
 import base64
-import util
-import validator
-import extractor
-from helpers import *
+from HttpBoot.validator import Validator
+from HttpBoot.extractor import Extractor
+from HttpBoot.helpers import *
 from locust.clients import HttpSession
 from requests.sessions import Session
 import curlify
@@ -181,7 +180,7 @@ class HttpBoot(object):
             return
 
         if 'concurrent(' in action:
-            concurrency, req_num = action[9:-1].split(',')
+            concurrency, req_num = action[11:-1].split(',')
             self.concurrent(param, int(concurrency), int(req_num))
             return
 
@@ -277,7 +276,7 @@ class HttpBoot(object):
 
     # 跳出for循环
     def break_if(self, expr):
-        val = eval(expr, globals(), util.vars)  # 丢失本地与全局变量, 如引用不了json模块
+        val = eval(expr, globals(), vars)  # 丢失本地与全局变量, 如引用不了json模块
         if bool(val):
             raise BreakException(expr)
 
@@ -293,7 +292,7 @@ class HttpBoot(object):
 
     # 打印变量
     def print_vars(self, _):
-        print(f"打印变量: {util.vars}")
+        print(f"打印变量: {vars}")
 
     # 睡眠
     def sleep(self, seconds):
@@ -313,10 +312,10 @@ class HttpBoot(object):
         # 添加固定变量:响应
         set_var('response', res)
         # 校验器
-        v = validator.Validator(res)
+        v = Validator(res)
         v.run(config)
         # 提取器
-        e = extractor.Extractor(res)
+        e = Extractor(res)
         e.run(config)
 
     # 设置基础url
