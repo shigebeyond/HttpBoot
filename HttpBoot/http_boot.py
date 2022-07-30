@@ -85,6 +85,8 @@ class HttpBoot(object):
             'concurrent': self.concurrent,
         }
         set_var('boot', self)
+        # 当前文件
+        self.step_file = None
         # 当前url
         self.curr_url = None
         # 当前session
@@ -148,12 +150,9 @@ class HttpBoot(object):
         log.debug(f"加载并执行步骤文件: {step_file}")
         # 获得步骤
         steps = read_yaml(step_file)
-        try:
-            # 执行多个步骤
-            self.run_steps(steps)
-        except Exception as ex:
-            log.debug(f"异常环境:当前步骤文件为 {step_file}, 当前请求url为 {self.curr_url}")
-            raise ex
+        self.step_file = step_file
+        # 执行多个步骤
+        self.run_steps(steps)
 
     # 执行多个步骤
     def run_steps(self, steps):
@@ -207,7 +206,7 @@ class HttpBoot(object):
                 try:
                     self.run_steps(steps)
                 except Exception as e:
-                    log.debug(e)
+                    log.error('并发单个请求异常', exc_info = e)
                     self.err_num += 1
                 finally:
                     t2 = time.time()
@@ -487,13 +486,17 @@ class HttpBoot(object):
 def main():
     # 基于yaml的执行器
     boot = HttpBoot()
-    # 步骤配置的yaml
-    if len(sys.argv) > 1:
-        step_files = sys.argv[1:]
-    else:
-        raise Exception("未指定步骤配置文件或目录")
-    # 执行yaml配置的步骤
-    boot.run(step_files)
+    try:
+        # 步骤配置的yaml
+        if len(sys.argv) > 1:
+            step_files = sys.argv[1:]
+        else:
+            raise Exception("未指定步骤配置文件或目录")
+        # 执行yaml配置的步骤
+        boot.run(step_files)
+    except Exception as ex:
+        log.error(f"异常环境:当前步骤文件为 {boot.step_file}, 当前请求url为 {boot.curr_url}", exc_info = ex)
+        raise ex
 
 if __name__ == '__main__':
     main()
