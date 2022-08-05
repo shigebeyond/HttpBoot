@@ -3,6 +3,7 @@
 ## 使用
 ```
 LocustBoot 任务配置文件.yml
+LocustBoot 任务配置文件.yml 后面还可以添加locust命令的其他参数如--autostart
 ```
 
 如执行`LocustBoot example/locust-jym-api.yml`， 输出如下
