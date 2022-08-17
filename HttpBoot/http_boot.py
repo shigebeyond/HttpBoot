@@ -83,6 +83,7 @@ class HttpBoot(object):
             'set_vars': self.set_vars,
             'print_vars': self.print_vars,
             'concurrent': self.concurrent,
+            'exec': self.exec,
         }
         set_var('boot', self)
         # 当前文件
@@ -481,6 +482,11 @@ class HttpBoot(object):
         log.debug(f"识别验证码: 图片为{file_path}, 验证码为{captcha}")
         # 删除文件
         #os.remove(file)
+
+    # 执行命令
+    def exec(self, cmd):
+        output = os.popen(cmd).read()
+        log.debug(f"执行命令: {cmd} | 结果: {output}")
 
 # cli入口
 def main():

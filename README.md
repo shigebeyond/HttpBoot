@@ -257,6 +257,12 @@ set_vars:
 print_vars:
 ```
 
+19. exec: 执行命令, 可用于执行 HttpBoot/SeleniumBoot/AppiumBoot/MiniumBoot 等命令，以便打通多端的用例流程
+```yaml
+exec: ls
+exec: SeleniumBoot test.yml
+```
+
 ## 校验器
 只针对 get/post/upload 有发送http请求的动作, 主要是为了校验响应的内容
 
