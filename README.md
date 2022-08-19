@@ -220,13 +220,13 @@ once:
 ```
 
 13. break_if: 满足条件则跳出循环; 
-只能定义在for循环的子步骤中
+只能定义在for/once循环的子步骤中
 ```yaml
 break_if: for_i>2 # 条件表达式，python语法
 ```
 
 14. moveon_if: 满足条件则往下走，否则跳出循环; 
-只能定义在for循环的子步骤中
+只能定义在for/once循环的子步骤中
 ```yaml
 moveon_if: for_i<=2 # 条件表达式，python语法
 ```
