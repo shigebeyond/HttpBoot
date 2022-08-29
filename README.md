@@ -189,13 +189,20 @@ recognize_captcha:
 ```
 
 11. for: 循环; 
-for动作下包含一系列子步骤，表示循环执行这系列子步骤；变量`for_i`记录是第几次迭代（从1开始）
+for动作下包含一系列子步骤，表示循环执行这系列子步骤；变量`for_i`记录是第几次迭代（从1开始）,变量`for_v`记录是每次迭代的元素值（仅当是list类型的变量迭代时有效）
 ```yaml
 # 循环3次
 for(3) :
   # 每次迭代要执行的子步骤
   - get:
       url: https://www.baidu.com
+    sleep: 2
+
+# 循环list类型的变量urls
+for(urls) :
+  # 每次迭代要执行的子步骤
+  - get:
+      url: $for_v
     sleep: 2
 
 # 无限循环，直到遇到跳出动作
