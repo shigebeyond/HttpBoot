@@ -37,7 +37,7 @@ class ResponseWrap(object):
             html = etree.parse(self.res.text, etree.HTMLParser())
             return html.get_element_by_id(path).text
 
-        raise Exception(f"不支持查找类型: {type}")
+        raise Exception(f"Invalid find type: {type}")
 
     # 获得元素的属性值或文本
     def get_prop_or_text(self, ele, prop):
@@ -47,4 +47,4 @@ class ResponseWrap(object):
                 return ele.get(prop)
             return ele.text
 
-        raise Exception('无效元素')
+        raise Exception('Invalid element')

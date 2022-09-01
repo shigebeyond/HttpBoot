@@ -13,7 +13,7 @@ def main():
         # 步骤配置的yaml
         step_files = parse_cmd('LocustBoot', meta['version'])
         if len(step_files) == 0:
-            raise Exception("未指定步骤配置文件")
+            raise Exception("Miss step config file")
         step_file = step_files[0]
 
         # locust_file
@@ -30,7 +30,7 @@ def main():
         log.debug(cmd)
         os.system(cmd)
     except Exception as ex:
-        log.error(f"异常环境:当前步骤文件为 {step_file}", exc_info = ex)
+        log.error(f"Exception occurs: current step file is {step_file}", exc_info = ex)
         raise ex
 
 if __name__ == '__main__':

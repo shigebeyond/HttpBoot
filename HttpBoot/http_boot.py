@@ -15,34 +15,35 @@ import threading
 from pyutilb import log, ocr_youdao
 
 # 改造 requests.Session.request() -- 支持打印curl + fix get请求不能传递data + fix不能传递cookie
-request1 = Session.request
-def request2(self, method, url, name=None, **kwargs):
-    # fix bug： get请求不能传递data
-    if method.upper() == 'GET' and 'data' in kwargs and kwargs['data']:
-        data = kwargs['data']
-        # 将data转为query string
-        if '?' in url:
-            query_string = '&'
-        else:
-            query_string = '?'
-        for k, v in data.items():
-            query_string += f"{k}={v}&"
-        url += query_string
-        kwargs['data'] = None
+if Session.request.__name__ != 'request2': # fix bug: 两次执行此处, 从而导致 Session.request 被改写两次, 从而导致打了2次log
+    request1 = Session.request
+    def request2(self, method, url, name=None, **kwargs):
+        # fix bug： get请求不能传递data
+        if method.upper() == 'GET' and 'data' in kwargs and kwargs['data']:
+            data = kwargs['data']
+            # 将data转为query string
+            if '?' in url:
+                query_string = '&'
+            else:
+                query_string = '?'
+            for k, v in data.items():
+                query_string += f"{k}={v}&"
+            url += query_string
+            kwargs['data'] = None
 
-    # fix bug: 不能传递cookie
-    if 'headers' in kwargs and kwargs['headers'] != None and 'cookie' in kwargs['headers']:
-        cookie = kwargs['headers']['cookie']
-        kwargs['cookies'] = dict([l.split("=", 1) for l in cookie.split("; ")])  # cookie字符串转化为字典
+        # fix bug: 不能传递cookie
+        if 'headers' in kwargs and kwargs['headers'] != None and 'cookie' in kwargs['headers']:
+            cookie = kwargs['headers']['cookie']
+            kwargs['cookies'] = dict([l.split("=", 1) for l in cookie.split("; ")])  # cookie字符串转化为字典
 
-    # 请求
-    res = request1(self, method, url, name, **kwargs)
+        # 请求
+        res = request1(self, method, url, name, **kwargs)
 
-    # 打印curl
-    cmd = curlify.to_curl(res.request)
-    log.debug('发送请求：' + cmd)
-    return res
-Session.request = request2
+        # 打印curl
+        cmd = curlify.to_curl(res.request)
+        log.debug('send request: ' + cmd)
+        return res
+    Session.request = request2
 
 # 跳出循环的异常
 class BreakException(Exception):
@@ -96,6 +97,8 @@ class HttpBoot(object):
         self.res_times = []
         # 错误次数
         self.err_num = 0
+        # http动作的标签
+        self.http_action_tags = {}
 
     '''
     执行入口
@@ -107,13 +110,13 @@ class HttpBoot(object):
             if '*' in path:
                 dir, pattern = path.rsplit(os.sep, 1)  # 从后面分割，分割为目录+模式
                 if not os.path.exists(dir):
-                    raise Exception(f'步骤配置目录不存在: {dir}')
+                    raise Exception(f'Step config directory not exist: {dir}')
                 self.run_1dir(dir, pattern)
                 return
 
             # 2 不存在
             if not os.path.exists(path):
-                raise Exception(f'步骤配置文件或目录不存在: {path}')
+                raise Exception(f'Step config file or directory not exist: {path}')
 
             # 3 目录: 遍历执行子文件
             if os.path.isdir(path):
@@ -139,21 +142,62 @@ class HttpBoot(object):
     # 执行单个步骤文件
     # :param step_file 步骤配置文件路径
     # :param include 是否inlude动作触发
-    def run_1file(self, step_file, include = False):
-        # 获得步骤文件的绝对路径
-        if include: # 补上绝对路径
-            if not os.path.isabs(step_file):
-                step_file = self.step_dir + os.sep + step_file
-        else: # 记录目录
-            step_file = os.path.abspath(step_file)
-            self.step_dir = os.path.dirname(step_file)
-
-        log.debug(f"加载并执行步骤文件: {step_file}")
-        # 获得步骤
-        steps = read_yaml(step_file)
+    def run_1file(self, step_file, include=False):
+        # 加载步骤文件
+        step_file, steps = self.load_1file(step_file, include)
+        log.debug(f"Load and run step file: {step_file}")
         self.step_file = step_file
+        # 先打标签
+        self.tag_http_actions(steps)
         # 执行多个步骤
         self.run_steps(steps)
+        # 清理标签
+        self.http_action_tags.clear()
+
+    # 加载单个步骤文件
+    def load_1file(self, step_file, include):
+        # 获得步骤文件的绝对路径
+        if include:  # 补上绝对路径
+            if not os.path.isabs(step_file):
+                step_file = self.step_dir + os.sep + step_file
+        else:  # 记录目录
+            step_file = os.path.abspath(step_file)
+            self.step_dir = os.path.dirname(step_file)
+        # 获得步骤
+        steps = read_yaml(step_file)
+        return step_file, steps
+
+    # 给所有http动作打标签
+    def tag_http_actions(self, steps):
+        # 逐个步骤检查多个动作
+        for step in steps:
+            for action, param in step.items():
+                # http动作: 打标签
+                if self.is_http_action(action):
+                    self.tag_http_action(action, param)
+                # include动作: 递归
+                if action == 'include':
+                    step_file, steps = self.load_1file(param, True)
+                    # 递归打标签
+                    self.tag_request_step(steps)
+
+    # 是否是http动作
+    def is_http_action(self, action):
+        return action in ('get', 'post', 'upload', 'download')
+
+    # 给单个http动作打标签
+    def tag_http_action(self, action, config):
+        # 指定标签
+        if 'tag' in config and config['tag'] != None: # 有指定标签
+            tags = (config['tag'])
+        else: # 默认标签
+            tag1 = f"{action} {config['url']}"
+            tag2 = config['url']
+            tags = (tag1, tag2)
+        # 记录标签
+        for tag in tags:
+            tag = tag.rstrip('/') # 去掉最后的/
+            self.http_action_tags[tag] = (action, config)
 
     # 执行多个步骤
     def run_steps(self, steps):
@@ -179,12 +223,31 @@ class HttpBoot(object):
             return
 
         if action not in self.actions:
-            raise Exception(f'无效动作: [{action}]')
+            raise Exception(f'Invalid action: [{action}]')
+
+        # 先执行依赖的动作
+        if self.is_http_action(action):
+            self.run_dep_actions(param)
 
         # 调用动作对应的函数
-        log.debug(f"处理动作: {action}={param}")
+        log.debug(f"handle action: {action}={param}")
         func = self.actions[action]
         func(param)
+
+    # 执行依赖的动作
+    def run_dep_actions(self, config):
+        # 依赖的动作标签
+        if 'deps' not in config or config['deps'] == None:
+            return
+        dep_action_tags = config['deps']
+        if not isinstance(dep_action_tags, list):
+            dep_action_tags = dep_action_tags.split(',')
+        # 逐个调用依赖的动作
+        for tag in dep_action_tags:
+            tag = tag.rstrip('/') # 去掉最后的/
+            if tag in self.http_action_tags:
+                action, param = self.http_action_tags[tag]
+                self.run_action(action, param)
 
     # --------- 动作处理的函数 --------
     # 并发测试
@@ -193,9 +256,9 @@ class HttpBoot(object):
     # :param req_num 每个线程的请求数
     def concurrent(self, steps, concurrency = None, req_num = 1):
         if concurrency == None:
-            raise Exception(f'并发动作必须指定并发数')
+            raise Exception(f'Miss concurrency parameter')
 
-        log.debug(f"-- 开始 concurrent({concurrency},{req_num}) --")
+        log.debug(f"-- Concurrent({concurrency},{req_num}) start --")
         # 清空响应时间+错误次数
         self.res_times.clear()
         self.err_num = 0
@@ -229,15 +292,15 @@ class HttpBoot(object):
         t2 = time.time()
         n = len(self.res_times)
         cost_time = t2 - t1
-        log.debug(f"-- 结束 concurrent({concurrency},{req_num}) --")
-        log.debug("总耗时(秒): %s", cost_time)
-        log.debug('响应次数: %s', n)
-        log.debug('成功次数: %s', n - self.err_num)
-        log.debug('错误次数: %s', self.err_num)
-        log.debug('最大耗时(秒): %s', max(self.res_times))
-        log.debug('最小耗时(秒): %s', min(self.res_times))
-        log.debug('平均耗时(秒): %s', sum(self.res_times) / n)
-        log.debug('吞吐量: %s', n / cost_time)
+        log.debug(f"-- Concurrent({concurrency},{req_num}) finish --")
+        log.debug("total costtime(s): %s", cost_time)
+        log.debug('response num: %s', n)
+        log.debug('success num: %s', n - self.err_num)
+        log.debug('fail num: %s', self.err_num)
+        log.debug('max costtime(s): %s', max(self.res_times))
+        log.debug('min costtime(s): %s', min(self.res_times))
+        log.debug('avg costtime(s): %s', sum(self.res_times) / n)
+        log.debug('throughput: %s', n / cost_time) # 吞吐量
 
     # 解析动作名中的for(n)中的n
     def parse_for_n(self, action):
@@ -248,8 +311,8 @@ class HttpBoot(object):
 
         # 2 变量名, 必须是list类型
         n = get_var(n, False)
-        if n == None or not isinstance(n, list):
-            raise Exception(f'for({n})括号中的参数必须要是数字或list类型的变量名')
+        if n == None or not (isinstance(n, list) or isinstance(n, int)):
+            raise Exception(f'Variable in for({n}) parentheses must be int or list type')
         return n
 
     # for循环
@@ -266,13 +329,13 @@ class HttpBoot(object):
         if isinstance(n, list):
             items = n
             n = len(items)
-        log.debug(f"-- 开始循环: {label} -- ")
+        log.debug(f"-- For loop start: {label} -- ")
         last_i = get_var('for_i', False) # 旧的索引
         last_v = get_var('for_v', False) # 旧的元素
         try:
             for i in range(n):
                 # i+1表示迭代次数比较容易理解
-                log.debug(f"第{i+1}次迭代")
+                log.debug(f"{i+1}th iteration")
                 set_var('for_i', i+1) # 更新索引
                 if items == None:
                     v = None
@@ -281,9 +344,9 @@ class HttpBoot(object):
                 set_var('for_v', v) # 更新元素
                 self.run_steps(steps)
         except BreakException as e:  # 跳出循环
-            log.debug(f"-- 跳出循环: {label}, 跳出条件: {e.condition} -- ")
+            log.debug(f"-- For loop break: {label}, break condition: {e.condition} -- ")
         else:
-            log.debug(f"-- 终点循环: {label} -- ")
+            log.debug(f"-- For loop finish: {label} -- ")
         finally:
             set_var('for_i', last_i) # 恢复索引
             set_var('for_v', last_v) # 恢复元素
@@ -315,7 +378,7 @@ class HttpBoot(object):
 
     # 打印变量
     def print_vars(self, _):
-        log.info(f"打印变量: {bvars}")
+        log.info(f"Variables: {bvars}")
 
     # 睡眠
     def sleep(self, seconds):
@@ -457,7 +520,7 @@ class HttpBoot(object):
         # 设置变量
         set_var('download_file', save_file)
         self.downloaded_files[url] = save_file
-        log.debug(f"下载文件: url为{url}, 另存为{save_file}")
+        log.debug(f"Dowload file: url is {url}, save path is{save_file}")
         return save_file
 
     # 获得文件名
@@ -488,7 +551,7 @@ class HttpBoot(object):
                     newname = f"{save_file}-{i}"
                 if not os.path.exists(newname):
                     return newname
-            raise Exception('目录太多文件，建议新建目录')
+            raise Exception('Too many file in save_dir, please change other directory.')
 
         return save_file
 
@@ -508,14 +571,14 @@ class HttpBoot(object):
         captcha = ocr_youdao.recognize_text(file_path)
         # 设置变量
         set_var('captcha', captcha)
-        log.debug(f"识别验证码: 图片为{file_path}, 验证码为{captcha}")
+        log.debug(f"Recognize captcha: image file is {file_path}, captcha is {captcha}")
         # 删除文件
         #os.remove(file)
 
     # 执行命令
     def exec(self, cmd):
         output = os.popen(cmd).read()
-        log.debug(f"执行命令: {cmd} | 结果: {output}")
+        log.debug(f"execute commmand: {cmd} | result: {output}")
 
 # cli入口
 def main():
@@ -527,12 +590,12 @@ def main():
     # 步骤配置的yaml
     step_files = parse_cmd('HttpBoot', meta['version'])
     if len(step_files) == 0:
-        raise Exception("未指定步骤配置文件或目录")
+        raise Exception("Miss step config file or directory")
     try:
         # 执行yaml配置的步骤
         boot.run(step_files)
     except Exception as ex:
-        log.error(f"异常环境:当前步骤文件为 {boot.step_file}, 当前请求url为 {boot.curr_url}", exc_info = ex)
+        log.error(f"Exception occurs: current step file is {boot.step_file}, current url is {boot.curr_url}", exc_info = ex)
         raise ex
 
 if __name__ == '__main__':

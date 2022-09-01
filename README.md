@@ -64,15 +64,15 @@ HttpBoot 步骤配置目录/step-*.yml
 ```
 /usr/local/lib/python3.7/dist-packages/locust/__init__.py:11: MonkeyPatchWarning: Monkey-patching ssl after ssl has already been imported may lead to errors, including RecursionError on Python 3.6. It may also silently lead to incorrect behaviour on Python 3.7. Please monkey-patch earlier. See https://github.com/gevent/gevent/issues/1016. Modules that had direct imports (NOT patched): ['urllib3.util (/home/shi/.local/lib/python3.7/site-packages/urllib3/util/__init__.py)', 'urllib3.util.ssl_ (/home/shi/.local/lib/python3.7/site-packages/urllib3/util/ssl_.py)']. 
   monkey.patch_all()
-加载并执行步骤文件: /ohome/shi/code/python/HttpBoot/example/jym-api.yml
-处理动作: base_url=http://api.jym0.com/
-处理动作: get={'url': 'home/'}
+Load and run step file: /ohome/shi/code/python/HttpBoot/example/jym-api.yml
+handle action: base_url=http://api.jym0.com/
+handle action: get={'url': 'home/'}
 发送请求：curl -X GET -H 'Accept: */*' -H 'Accept-Encoding: gzip, deflate, br' -H 'Connection: keep-alive' -H 'User-Agent: python-requests/2.27.1' http://api.jym0.com/home/
-处理动作: post={'url': 'home/get_bank_list', 'data': {'client_type': 3, 'unique_code': 'FA95024A-EC83-46A3-AEE0-3D180795767E', 'app_version': 1.0, 'v': '${random_int(6)}'}, 'extract_by_jsonpath': {'code': ode'}, 'validate_by_jsonpath': {'$.code': {'=': 200}, '$.msg': {'contains': '成功'}}}
+handle action: post={'url': 'home/get_bank_list', 'data': {'client_type': 3, 'unique_code': 'FA95024A-EC83-46A3-AEE0-3D180795767E', 'app_version': 1.0, 'v': '${random_int(6)}'}, 'extract_by_jsonpath': {'code': ode'}, 'validate_by_jsonpath': {'$.code': {'=': 200}, '$.msg': {'contains': '成功'}}}
 发送请求：curl -X POST -H 'Accept: */*' -H 'Accept-Encoding: gzip, deflate, br' -H 'Connection: keep-alive' -H 'Content-Length: 87' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Cookie: ci_sessifgns2l8q0r8f8s0ntbrg96th0aar7m' -H 'User-Agent: python-requests/2.27.1' -d 'client_type=3&unique_code=FA95024A-EC83-46A3-AEE0-3D180795767E&app_version=1.0&v=154262' http://api.jym0.com/home/get_bank_list
-处理校验函数: ==200
-处理校验函数: contains=成功
-从响应中抽取参数: code=200
+Call validate function: ==200
+Call validate function: contains=成功
+Extract variable from response: code=200
 ```
 
 ## 步骤配置文件及demo
@@ -120,7 +120,6 @@ random_int(n): 随机数字，参数n是数字个数
 incr(key): 自增值，从1开始，参数key表示不同的自增值，不同key会独立自增
 ```
 
-
 3. base_url: 设置基础url
 ```yaml
 base_url: https://www.taobao.com/
@@ -142,40 +141,52 @@ common_headers:
 6. get: 发get请求; 
 ```yaml
 get:
-    url: $dyn_data_url # url,支持写变量
+    url: $dyn_data_url # url,支持写变量, 如果设置了base_url, 则可以写相对url
     extract_by_eval:
       dyn_data: "json.loads(response.text[16:-1])" # 变量response是响应对象
+    #tag: tag1 # 打标签, 在依赖时引用, 可省, 默认为 动作+url 或 单纯url, 建议配置的url为相对url
+    #deps: ['tag1', 'tag2'] # 依赖的动作标签, 当前动作执行前会先执行依赖的动作
+    #deps: tag1,tag2 # 依赖的另一种写法 
 ```
 
 7. post: 发post请求; 
 ```yaml
 post:
-    url: http://admin.jym1.com/store/add_store # url,支持写变量
+    url: http://admin.jym1.com/store/add_store # url,支持写变量, 如果设置了base_url, 则可以写相对url
     is_ajax: true
     data: # post的参数
       # 参数名:参数值
       store_name: teststore-${random_str(6)}
       store_logo_url: '$img'
+    #tag: tag1 # 打标签, 在依赖时引用, 可省, 默认为 动作+url 或 单纯url, 建议配置的url为相对url
+    #deps: ['tag1', 'tag2'] # 依赖的动作标签, 当前动作执行前会先执行依赖的动作
+    #deps: tag1,tag2 # 依赖的另一种写法
 ```
 
 8. upload: 上传文件; 
 ```yaml
 upload: # 上传文件/图片
-    url: http://admin.jym1.com/upload/common_upload_img/store_img
+    url: http://admin.jym1.com/upload/common_upload_img/store_img # url,支持写变量, 如果设置了base_url, 则可以写相对url
     files: # 上传的多个文件
       # 参数名:文件本地路径
       file: /home/shi/fruit.jpeg
     extract_by_jsonpath:
       img: $.data.url
+    #tag: tag1 # 打标签, 在依赖时引用, 可省, 默认为 动作+url 或 单纯url, 建议配置的url为相对url
+    #deps: ['tag1', 'tag2'] # 依赖的动作标签, 当前动作执行前会先执行依赖的动作
+    #deps: tag1,tag2 # 依赖的另一种写法
 ```
 
 9. download: 下载文件; 
 变量`download_file`记录最新下载的单个文件
 ```yaml
 download:
-    url: https://img.alicdn.com/tfscom/TB1t84NPuL2gK0jSZPhXXahvXXa.jpg_q90.jpg
+    url: https://img.alicdn.com/tfscom/TB1t84NPuL2gK0jSZPhXXahvXXa.jpg_q90.jpg # url,支持写变量, 如果设置了base_url, 则可以写相对url
     save_dir: downloads # 保存的目录，默认为 downloads
     save_file: test.jpg # 保存的文件名，默认为url中最后一级的文件名
+    #tag: tag1 # 打标签, 在依赖时引用, 可省, 默认为 动作+url 或 单纯url, 建议配置的url为相对url
+    #deps: ['tag1', 'tag2'] # 依赖的动作标签, 当前动作执行前会先执行依赖的动作
+    #deps: tag1,tag2 # 依赖的另一种写法
 ```
 
 10. recognize_captcha: 识别验证码; 
