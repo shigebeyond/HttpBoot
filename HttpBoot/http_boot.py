@@ -1,18 +1,20 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import gevent
+import os
 import sys
 import fnmatch
 import requests
 from pyutilb.util import *
 from HttpBoot.validator import Validator
 from HttpBoot.extractor import Extractor
-from locust.clients import HttpSession
 from requests.sessions import Session
 import curlify
 import threading
 from pyutilb import log, ocr_youdao
+if hasattr(os, 'posix_spawnp'):
+    import gevent
+    from locust.clients import HttpSession
 
 # 改造 requests.Session.request() -- 支持打印curl + fix get请求不能传递data + fix不能传递cookie
 if Session.request.__name__ != 'request2': # fix bug: 两次执行此处, 从而导致 Session.request 被改写两次, 从而导致打了2次log
@@ -383,7 +385,7 @@ class HttpBoot(object):
     # 睡眠
     def sleep(self, seconds):
         seconds = replace_var(seconds)  # 替换变量
-        if isinstance(self.session, HttpSession): # 如果是locust场景, 则挂起协程
+        if hasattr(os, 'posix_spawnp') and isinstance(self.session, HttpSession): # 如果是locust场景, 则挂起协程
             gevent.sleep(seconds)
         else:
             time.sleep(int(seconds))
@@ -463,13 +465,25 @@ class HttpBoot(object):
 
         return curr_headers
 
+    # 构建requests方法的其他参数
+    # 如 verify: false 控制不检查https证书
+    # 如 allow_redirects: false 不允许重定向
+    def _get_options(self, config):
+        opt = None
+        if 'options' in config:
+            opt = config['options']
+        if opt == None:
+            opt = {}
+        return opt
+
     # get请求
     # :param config {url, headers, data, validate_by_jsonpath, validate_by_css, validate_by_xpath, extract_by_jsonpath, extract_by_css, extract_by_xpath, extract_by_eval}
     def get(self, config = {}):
         url = self._get_url(config)
         data = self._get_data(config)
         headers = self._get_headers(config)
-        res = self.session.get(url, headers=headers, data=data)
+        opt = self._get_options(config)
+        res = self.session.get(url, headers=headers, data=data, **opt)
         # log.debug(res.text)
         # 解析响应
         self._analyze_response(res, config)
@@ -480,7 +494,8 @@ class HttpBoot(object):
         url = self._get_url(config)
         data = self._get_data(config)
         headers = self._get_headers(config)
-        res = self.session.post(url, headers=headers, data=data)
+        opt = self._get_options(config)
+        res = self.session.post(url, headers=headers, data=data, **opt)
         # 解析响应
         self._analyze_response(res, config)
 
@@ -495,7 +510,8 @@ class HttpBoot(object):
             path = replace_var(path)
             files[name] = open(path, 'rb')
         # 发请求
-        res = self.session.post(url, headers=headers, files=files)
+        opt = self._get_options(config)
+        res = self.session.post(url, headers=headers, files=files, **opt)
         # 解析响应
         self._analyze_response(res, config)
 
@@ -513,7 +529,8 @@ class HttpBoot(object):
             return self.downloaded_files[url]
 
         # 发请求
-        res = self.session.get(url, headers=headers, data=data)
+        opt = self._get_options(config)
+        res = self.session.get(url, headers=headers, data=data, **opt)
 
         # 保存响应的文件
         write_byte_file(save_file, res.content)
