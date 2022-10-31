@@ -33,7 +33,7 @@ class Extractor(ResponseWrap):
             return self.run_type('class', config['extract_by_class'])
 
         if 'extract_by_eval' in config:
-            return self.run_eval(config['extract_by_eval'])
+            return self.run_type('eval', config['extract_by_eval'])
 
     # 执行单个类型的抽取
     def run_type(self, type, fields):
@@ -43,13 +43,3 @@ class Extractor(ResponseWrap):
             # 抽取单个字段
             set_var(var, val)
             log.debug(f"Extract variable from response: {var}={val}")
-
-    # 执行eval类型的抽取
-    def run_eval(self, fields):
-        for var, expr in fields.items():
-            # 获得字段值
-            val = eval(expr, globals(), bvars) # 丢失本地与全局变量, 如引用不了json模块
-            # 抽取单个字段
-            set_var(var, val)
-            log.debug(f"Extract variable from response: {var}={val}")
-

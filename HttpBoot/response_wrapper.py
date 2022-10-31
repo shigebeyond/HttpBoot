@@ -37,7 +37,11 @@ class ResponseWrap(object):
             html = etree.parse(self.res.text, etree.HTMLParser())
             return html.get_element_by_id(path).text
 
+        if type == 'eval':
+            return eval(path, globals(), bvars) # 丢失本地与全局变量, 如引用不了json模块
+
         raise Exception(f"Invalid find type: {type}")
+
 
     # 获得元素的属性值或文本
     def get_prop_or_text(self, ele, prop):

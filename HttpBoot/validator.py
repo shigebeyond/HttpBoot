@@ -44,6 +44,9 @@ class Validator(ResponseWrap):
         if 'validate_by_class' in config:
             return self.run_type('class', config['validate_by_class'])
 
+        if 'validate_by_eval' in config:
+            return self.run_type('eval', config['validate_by_eval'])
+
     # 执行单个类型的校验
     def run_type(self, type, fields):
         for path, rules in fields.items():
