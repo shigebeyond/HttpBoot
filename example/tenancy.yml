@@ -10,9 +10,11 @@
       data:
         username: shi
         password: shi
-        name: shi-rL1
+        name: shi-${random_str(3)}
         age: 11
+      options:
+        allow_redirects: false
       validate_by_eval:
         'response.status_code':
-          '=': 200
+          '=': 302
     sleep: 1
