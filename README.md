@@ -315,6 +315,14 @@ validate_by_jsonpath:
     contains: 衬衫 # 即 title 元素的值包含'衬衫'
 ```
 
+4. validate_by_eval:
+使用 `eval(表达式)` 执行表达式, 并校验执行结果
+```yaml
+validate_by_eval:
+  'response.status_code':
+    '=': 200
+```
+
 #### 校验符号或函数
 1. `=`: 相同
 2. `>`: 大于

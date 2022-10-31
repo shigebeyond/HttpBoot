@@ -1,0 +1,18 @@
+- for(20):
+  - get:
+      url: http://bar.localhost:8080/user/edit/4
+      validate_by_eval:
+        'response.status_code':
+          '=': 200
+    sleep: 1
+  - post:
+      url: http://bar.localhost:8080/user/edit/4
+      data:
+        username: shi
+        password: shi
+        name: shi-rL1
+        age: 11
+      validate_by_eval:
+        'response.status_code':
+          '=': 200
+    sleep: 1
