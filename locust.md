@@ -24,6 +24,8 @@ locust -f /home/shi/.local/lib/python3.7/site-packages/HttpBoot/locust_boot.py -
 
 每个任务下包含的是 HttpBoot 的步骤, 简单的说就是在 HttpBoot 步骤上多包了一层 locust 的操作 
 
+[演示视频](https://www.zhihu.com/zvideo/1573006826647560194)
+
 ## 配置详解
 支持通过yaml来配置 locust 任务;
 

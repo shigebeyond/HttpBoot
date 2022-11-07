@@ -82,6 +82,8 @@ Extract variable from response: code=200
 
 每个步骤里有多个动作(如sleep)，如果动作有重名，就另外新开一个步骤写动作，这是由yaml语法限制导致的，但不影响步骤执行。
 
+[演示视频](https://www.zhihu.com/zvideo/1572950389674246144)
+
 ## 配置详解
 支持通过yaml来配置执行的步骤;
 
