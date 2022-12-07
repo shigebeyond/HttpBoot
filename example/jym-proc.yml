@@ -1,0 +1,26 @@
+# 基础url
+- base_url: http://api.jym0.com/
+- proc(a):
+  - print: 开始调用接口a
+  - get:
+      url: home/basic_data
+    print: 结束调用接口a
+- proc(b):
+  - print: 开始调用接口b
+  - call: a # 依赖的过程先调用
+  - post:
+      url: home/get_bank_list
+      data:
+        client_type: 3
+        unique_code: FA95024A-EC83-46A3-AEE0-3D180795767E
+        app_version: 1.0
+        v: ${random_int(6)}
+    print: 结束调用接口b
+- proc(c):
+  - print: 开始调用接口c
+  - call: a # 依赖的过程先调用
+  - call: b # 依赖的过程先调用
+  - get:
+      url: home
+    print: 结束调用接口c
+- call: c

@@ -147,9 +147,6 @@ get:
     url: $dyn_data_url # url,支持写变量, 如果设置了base_url, 则可以写相对url
     extract_by_eval:
       dyn_data: "json.loads(response.text[16:-1])" # 变量response是响应对象
-    #tag: tag1 # 打标签, 在依赖时引用, 可省, 默认为 动作+url 或 单纯url, 建议配置的url为相对url
-    #deps: ['tag1', 'tag2'] # 依赖的动作标签, 当前动作执行前会先执行依赖的动作
-    #deps: tag1,tag2 # 依赖的另一种写法 
 ```
 
 7. post: 发post请求; 
@@ -161,9 +158,6 @@ post:
       # 参数名:参数值
       store_name: teststore-${random_str(6)}
       store_logo_url: '$img'
-    #tag: tag1 # 打标签, 在依赖时引用, 可省, 默认为 动作+url 或 单纯url, 建议配置的url为相对url
-    #deps: ['tag1', 'tag2'] # 依赖的动作标签, 当前动作执行前会先执行依赖的动作
-    #deps: tag1,tag2 # 依赖的另一种写法
 ```
 
 8. upload: 上传文件; 
@@ -175,9 +169,6 @@ upload: # 上传文件/图片
       file: /home/shi/fruit.jpeg
     extract_by_jsonpath:
       img: $.data.url
-    #tag: tag1 # 打标签, 在依赖时引用, 可省, 默认为 动作+url 或 单纯url, 建议配置的url为相对url
-    #deps: ['tag1', 'tag2'] # 依赖的动作标签, 当前动作执行前会先执行依赖的动作
-    #deps: tag1,tag2 # 依赖的另一种写法
 ```
 
 9. download: 下载文件; 
@@ -187,9 +178,6 @@ download:
     url: https://img.alicdn.com/tfscom/TB1t84NPuL2gK0jSZPhXXahvXXa.jpg_q90.jpg # url,支持写变量, 如果设置了base_url, 则可以写相对url
     save_dir: downloads # 保存的目录，默认为 downloads
     save_file: test.jpg # 保存的文件名，默认为url中最后一级的文件名
-    #tag: tag1 # 打标签, 在依赖时引用, 可省, 默认为 动作+url 或 单纯url, 建议配置的url为相对url
-    #deps: ['tag1', 'tag2'] # 依赖的动作标签, 当前动作执行前会先执行依赖的动作
-    #deps: tag1,tag2 # 依赖的另一种写法
 ```
 
 10. recognize_captcha: 识别验证码; 

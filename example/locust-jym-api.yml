@@ -9,11 +9,11 @@ task:
   # 可包含 HttpBoot 的步骤
   # 发get请求
   - get:
-      url: home/ # url, 实际url会在前面拼接 base_url
-    sleep: 2
-  # 发post请求
+      url: /home/ # url, 实际url会在前面拼接 base_url
+#    sleep: 2
+#  # 发post请求
   - post:
-      url: home/get_bank_list # url, 实际url会在前面拼接 base_url
+      url: /home/get_bank_list # url, 实际url会在前面拼接 base_url
 # 4 压测结束后置处理
 on_stop:
   # 可包含 HttpBoot 的步骤

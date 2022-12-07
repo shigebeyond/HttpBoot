@@ -3,6 +3,8 @@
 # 发get请求
 - get:
     url: home/ # url, 实际url会在前面拼接 base_url
+- get:
+    url: home/basic_data
 # 发post请求
 - post:
     url: home/get_bank_list # url, 实际url会在前面拼接 base_url
