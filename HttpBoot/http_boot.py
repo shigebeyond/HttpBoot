@@ -11,7 +11,7 @@ from HttpBoot.extractor import Extractor
 from requests.sessions import Session
 import curlify
 import threading
-from pyutilb import log, YamlBoot, ocr_youdao
+from pyutilb import log, YamlBoot, BreakException, ocr_youdao
 if hasattr(os, 'posix_spawnp'):
     import gevent
     from locust.clients import HttpSession
@@ -47,10 +47,6 @@ if Session.request.__name__ != 'request2': # fix bug: 两次执行此处, 从而
         return res
     Session.request = request2
 
-# 跳出循环的异常
-class BreakException(Exception):
-    def __init__(self, condition):
-        self.condition = condition # 跳转条件
 
 # http接口基于yaml的启动器
 class HttpBoot(YamlBoot):
