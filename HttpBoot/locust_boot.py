@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from locust import HttpUser, argument_parser,events
+from locust import HttpUser, FastHttpUser, argument_parser, events
 from pyutilb.util import *
 from HttpBoot.http_boot import HttpBoot
 
@@ -32,6 +32,7 @@ def build_task(steps):
     return run_task
 
 # user类
+# TODO: FastHttpUser 相对于 HttpUser 能提升5-6倍的并发量; 单个locust进程(1核cpu)下，FastHttpUser 可以做到16000 qps，HttpUser 做到 4000 qps
 class BootUser(HttpUser):
     tasks = [build_task(config['task'])] # task下的多个步骤只当做一个任务，反正locust监控的是请求级，而不是任务级
     host = config['base_url']
