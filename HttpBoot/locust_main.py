@@ -12,18 +12,13 @@ def main():
         meta = read_init_file_meta(dir + os.sep + '__init__.py')
 
         # 步骤配置的yaml
-        step_files = parse_cmd('LocustBoot', meta['version'])
+        step_files, option = parse_cmd('LocustBoot', meta['version'])
         if len(step_files) == 0:
             raise Exception("Miss step config file")
         step_file = step_files[0]
 
-        # 其他命令选项
-        options = ''
-        if len(sys.argv) > 2:
-            options = ' '.join(sys.argv[2:])
-
         # 运行locust命令
-        run_locust_boot(step_file, options)
+        run_locust_boot(step_file, option.locustopt)
     except Exception as ex:
         log.error(f"Exception occurs: current step file is {step_file}", exc_info = ex)
         raise ex
