@@ -11,7 +11,8 @@ from HttpBoot.extractor import Extractor
 from requests.sessions import Session
 import curlify
 import threading
-from pyutilb import log, YamlBoot, BreakException, ocr_youdao
+from pyutilb import YamlBoot, BreakException, ocr_youdao
+from pyutilb.log import log
 if hasattr(os, 'posix_spawnp'):
     import gevent
     from locust.clients import HttpSession

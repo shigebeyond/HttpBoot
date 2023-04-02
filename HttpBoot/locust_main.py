@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-from pyutilb import log
+from pyutilb.log import log
 from pyutilb.util import *
 
 def main():
