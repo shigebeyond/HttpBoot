@@ -4,7 +4,7 @@
 from requests import Response
 from HttpBoot.response_wrapper import ResponseWrap
 from pyutilb.util import *
-from pyutilb import log
+from pyutilb.log import log
 
 # 抽取器
 class Extractor(ResponseWrap):

@@ -4,7 +4,7 @@
 import re
 from HttpBoot.response_wrapper import ResponseWrap
 from requests import Response
-from pyutilb import log
+from pyutilb.log import log
 
 # 校验器
 class Validator(ResponseWrap):
