@@ -8,3 +8,4 @@ build/
 HttpBoot.egg-info/
 dist/
 boot.log*
+stat.yml
