@@ -4,6 +4,7 @@
 import sys
 from locust import HttpUser, FastHttpUser, argument_parser, events
 from pyutilb.util import *
+from pyutilb.file import *
 from HttpBoot.http_boot import HttpBoot
 
 

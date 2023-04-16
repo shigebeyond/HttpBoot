@@ -6,6 +6,8 @@ import sys
 import fnmatch
 import requests
 from pyutilb.util import *
+from pyutilb.file import *
+from pyutilb.cmd import *
 from HttpBoot.validator import Validator
 from HttpBoot.extractor import Extractor
 from requests.sessions import Session

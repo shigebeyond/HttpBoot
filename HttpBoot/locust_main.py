@@ -4,6 +4,8 @@ import os
 import sys
 from pyutilb.log import log
 from pyutilb.util import *
+from pyutilb.file import *
+from pyutilb.cmd import *
 
 def main():
     try:
