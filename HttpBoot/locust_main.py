@@ -30,6 +30,9 @@ def run_locust_boot(step_file, options):
     # locust_file
     # locust_file = os.path.abspath('locust_boot.py')
     locust_file = __file__.replace('locust_main.py', 'locust_boot.py')
+    # 选项
+    if options is None:
+        options = ''
     # 执行locust命令
     cmd = f'locust -f {locust_file} -b {step_file} {options}'
     log.debug(cmd)
