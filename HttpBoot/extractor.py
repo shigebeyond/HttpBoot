@@ -43,4 +43,4 @@ class Extractor(ResponseWrap):
             val = self._get_val_by(type, path)
             # 抽取单个字段
             set_var(var, val)
-            log.debug(f"Extract variable from response: {var}={val}")
+            log.debug(f"Extract variable from response: %s=%s", var, val)

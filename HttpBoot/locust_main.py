@@ -22,7 +22,7 @@ def main():
         # 运行locust命令
         run_locust_boot(step_file, option.locustopt)
     except Exception as ex:
-        log.error(f"Exception occurs: current step file is {step_file}", exc_info = ex)
+        log.error(f"Exception occurs: current step file is %s", step_file, exc_info = ex)
         raise ex
 
 # 运行locust命令

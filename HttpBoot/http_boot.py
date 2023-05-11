@@ -97,7 +97,7 @@ class HttpBoot(YamlBoot):
 
         concurrency = int(args[0]) # 并发数
         req_num = int(args[1]) # 每个线程的请求数
-        log.debug(f"-- Concurrent({concurrency},{req_num}) start --")
+        log.debug(f"-- Concurrent(%s,%s) start --", concurrency, req_num)
         # 清空响应时间+错误次数
         self.res_times.clear()
         self.err_num = 0
@@ -131,7 +131,7 @@ class HttpBoot(YamlBoot):
         t2 = time.time()
         n = len(self.res_times)
         cost_time = t2 - t1
-        log.debug(f"-- Concurrent({concurrency},{req_num}) finish --")
+        log.debug(f"-- Concurrent(%s,%s) finish --", concurrency, req_num)
         log.debug("total costtime(s): %s", cost_time)
         log.debug('response num: %s', n)
         log.debug('success num: %s', n - self.err_num)
@@ -283,7 +283,7 @@ class HttpBoot(YamlBoot):
         # 设置变量
         set_var('download_file', save_file)
         self.downloaded_files[url] = save_file
-        log.debug(f"Dowload file: url is {url}, save path is{save_file}")
+        log.debug(f"Dowload file: url is %s, save path is%s", url, save_file)
         return save_file
 
     # 获得文件名
@@ -334,7 +334,7 @@ class HttpBoot(YamlBoot):
         captcha = ocr_youdao.recognize_text(file_path)
         # 设置变量
         set_var('captcha', captcha)
-        log.debug(f"Recognize captcha: image file is {file_path}, captcha is {captcha}")
+        log.debug(f"Recognize captcha: image file is %s, captcha is %s", file_path, captcha)
         # 删除文件
         #os.remove(file)
 
@@ -353,7 +353,7 @@ def main():
         # 执行yaml配置的步骤
         boot.run(step_files)
     except Exception as ex:
-        log.error(f"Exception occurs: current step file is {boot.step_file}, current url is {boot.curr_url}", exc_info = ex)
+        log.error(f"Exception occurs: current step file is %s, current url is %s", boot.step_file, boot.curr_url, exc_info = ex)
         raise ex
 
 if __name__ == '__main__':
