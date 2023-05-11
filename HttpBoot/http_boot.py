@@ -283,7 +283,7 @@ class HttpBoot(YamlBoot):
         # 设置变量
         set_var('download_file', save_file)
         self.downloaded_files[url] = save_file
-        log.debug(f"Dowload file: url is %s, save path is%s", url, save_file)
+        log.debug(f"Dowload file: url is %s, save path is %s", url, save_file)
         return save_file
 
     # 获得文件名
