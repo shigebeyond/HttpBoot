@@ -5,24 +5,13 @@ import re
 from HttpBoot.response_wrapper import ResponseWrap
 from requests import Response
 from pyutilb.log import log
+from pyutilb import BaseValidator
 
 # 校验器
-class Validator(ResponseWrap):
+class Validator(BaseValidator, ResponseWrap):
 
     def __init__(self, res: Response = None):
         super(Validator, self).__init__(res)
-        # 校验函数映射
-        self.funcs = {
-            '=': lambda val, param: val == param,
-            '>': lambda val, param: float(val) > param,
-            '<': lambda val, param: float(val) < param,
-            '>=': lambda val, param: float(val) >= param,
-            '<=': lambda val, param: float(val) <= param,
-            'contains': lambda val, param: param in val,
-            'startswith': lambda val, param: val.startswith(param),
-            'endswith': lambda val, param: val.endswith(param),
-            'regex_match': lambda val, param: re.search(param, val) != None,
-        }
 
     # 执行校验
     def run(self, config):
@@ -46,33 +35,3 @@ class Validator(ResponseWrap):
 
         if 'validate_by_eval' in config:
             return self.run_type('eval', config['validate_by_eval'])
-
-    # 执行单个类型的校验
-    def run_type(self, type, fields):
-        for path, rules in fields.items():
-            # 校验单个字段
-            self.run_field(type, path, rules)
-
-    # 执行单个字段的校验
-    def run_field(self, type, path, rules):
-        # 获得字段值
-        val = self._get_val_by(type, path)
-        # 逐个函数校验
-        for func, param in rules.items():
-            b = self.run_func(func, val, param)
-            if b == False:
-                raise AssertionError(f"Response element [{path}] not meet validate condition: {val} {func} '{param}'")
-
-    '''
-    执行单个函数：就是调用函数
-    :param func 函数名
-    :param val 校验的值
-    :param param 参数
-    '''
-    def run_func(self, func, val, param):
-        if func not in self.funcs:
-            raise Exception(f'Invalid validate function: {func}')
-        # 调用校验函数
-        log.debug(f"Call validate function: %s=%s", func, param)
-        func = self.funcs[func]
-        return func(val, param)
