@@ -15,8 +15,11 @@
       v: ${random_int(6)} # 可以带变量或表达式
     extract_by_jsonpath: # 从响应中提取变量
       code: $.code
+#    validate_by_jsonpath: # 校验响应中的数据
+#      '$.code':
+#        '=': 200
+#      '$.msg':
+#        'contains': 成功
     validate_by_jsonpath: # 校验响应中的数据
-      '$.code':
-        '=': 200
-      '$.msg':
-        'contains': 成功
+      - '$.code = 200'
+      - '$.msg contains 成功'
