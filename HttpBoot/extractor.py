@@ -6,9 +6,10 @@ from HttpBoot.response_wrapper import ResponseWrap
 from pyutilb.util import *
 from pyutilb.file import *
 from pyutilb.log import log
+from pyutilb import BaseExtractor
 
 # 抽取器
-class Extractor(ResponseWrap):
+class Extractor(BaseExtractor, ResponseWrap):
 
     def __init__(self, res: Response = None):
         super(Extractor, self).__init__(res)
@@ -35,12 +36,3 @@ class Extractor(ResponseWrap):
 
         if 'extract_by_eval' in config:
             return self.run_type('eval', config['extract_by_eval'])
-
-    # 执行单个类型的抽取
-    def run_type(self, type, fields):
-        for var, path in fields.items():
-            # 获得字段值
-            val = self._get_val_by(type, path)
-            # 抽取单个字段
-            set_var(var, val)
-            log.debug(f"Extract variable from response: %s=%s", var, val)
