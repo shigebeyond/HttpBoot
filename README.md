@@ -100,12 +100,12 @@ Extract variable from response: code=200
 
 下面详细介绍每个动作:
 
-1. sleep: 线程睡眠; 
+1. sleep: 线程睡眠;
 ```yaml
 sleep: 2 # 线程睡眠2秒
 ```
 
-2. print: 打印, 支持输出变量/函数; 
+2. print: 打印, 支持输出变量/函数;
 ```yaml
 # 调试打印
 print: "总申请数=${dyn_data.total_apply}, 剩余份数=${dyn_data.quantity_remain}"
@@ -135,20 +135,16 @@ incr(key): 自增值，从1开始，参数key表示不同的自增值，不同ke
 base_url: https://www.taobao.com/
 ```
 
-4. common_data: 设置公共请求参数;
-如果是get请求, 则挂在query参数, 否则挂在post参数中
+4. common_req: 设置公共请求参数或请求头;
 ```yaml
-common_data:
+common_req:
+  data: # 请求参数: 如果是get请求, 则挂在query参数, 否则挂在post参数中
     uid: 1
+  headers: # 请求头
+    token: "110"
 ```
 
-5. common_headers: 设置公共请求头
-```yaml
-common_headers:
-    uid: 1
-```
-
-6. get: 发get请求; 
+5. get: 发get请求;
 ```yaml
 get:
     url: $dyn_data_url # url,支持写变量, 如果设置了base_url, 则可以写相对url
@@ -156,7 +152,7 @@ get:
       dyn_data: "json.loads(response.text[16:-1])" # 变量response是响应对象
 ```
 
-7. post: 发post请求; 
+6. post: 发post请求;
 ```yaml
 post:
     url: http://admin.jym1.com/store/add_store # url,支持写变量, 如果设置了base_url, 则可以写相对url
@@ -167,7 +163,7 @@ post:
       store_logo_url: '$img'
 ```
 
-8. upload: 上传文件; 
+7. upload: 上传文件;
 ```yaml
 upload: # 上传文件/图片
     url: http://admin.jym1.com/upload/common_upload_img/store_img # url,支持写变量, 如果设置了base_url, 则可以写相对url
@@ -178,8 +174,8 @@ upload: # 上传文件/图片
       img: $.data.url
 ```
 
-9. download: 下载文件; 
-变量`download_file`记录最新下载的单个文件
+8. download: 下载文件;
+   变量`download_file`记录最新下载的单个文件
 ```yaml
 download:
     url: https://img.alicdn.com/tfscom/TB1t84NPuL2gK0jSZPhXXahvXXa.jpg_q90.jpg # url,支持写变量, 如果设置了base_url, 则可以写相对url
@@ -187,9 +183,9 @@ download:
     save_file: test.jpg # 保存的文件名，默认为url中最后一级的文件名
 ```
 
-10. recognize_captcha: 识别验证码; 
-参数同 `download` 动作， 因为内部就是调用 `download`;
-而变量`captcha`记录识别出来的验证码
+9. recognize_captcha: 识别验证码;
+   参数同 `download` 动作， 因为内部就是调用 `download`;
+   而变量`captcha`记录识别出来的验证码
 ```
 recognize_captcha:
     url: http://admin.jym1.com/login/verify_image
@@ -197,8 +193,8 @@ recognize_captcha:
     # save_file: test.jpg # 保存的文件名，默认为url中最后一级的文件名
 ```
 
-11. for: 循环; 
-for动作下包含一系列子步骤，表示循环执行这系列子步骤；变量`for_i`记录是第几次迭代（从1开始）,变量`for_v`记录是每次迭代的元素值（仅当是list类型的变量迭代时有效）
+10. for: 循环;
+    for动作下包含一系列子步骤，表示循环执行这系列子步骤；变量`for_i`记录是第几次迭代（从1开始）,变量`for_v`记录是每次迭代的元素值（仅当是list类型的变量迭代时有效）
 ```yaml
 # 循环3次
 for(3) :
@@ -224,8 +220,8 @@ for:
     sleep: 2
 ```
 
-12. once: 只执行一次，等价于 `for(1)`; 
-once 结合 moveon_if，可以模拟 python 的 `if` 语法效果
+11. once: 只执行一次，等价于 `for(1)`;
+    once 结合 moveon_if，可以模拟 python 的 `if` 语法效果
 ```yaml
 once:
   # 每次迭代要执行的子步骤
@@ -235,19 +231,19 @@ once:
     sleep: 2
 ```
 
-13. break_if: 满足条件则跳出循环; 
-只能定义在for/once循环的子步骤中
+12. break_if: 满足条件则跳出循环;
+    只能定义在for/once循环的子步骤中
 ```yaml
 break_if: for_i>2 # 条件表达式，python语法
 ```
 
-14. moveon_if: 满足条件则往下走，否则跳出循环; 
-只能定义在for/once循环的子步骤中
+13. moveon_if: 满足条件则往下走，否则跳出循环;
+    只能定义在for/once循环的子步骤中
 ```yaml
 moveon_if: for_i<=2 # 条件表达式，python语法
 ```
 
-15. if/else: 满足条件则执行if分支，否则执行else分支
+14. if/else: 满足条件则执行if分支，否则执行else分支
 ```yaml
 - extract_by_css:
     txt: '#J_NewIndexTipBtn'
@@ -257,7 +253,7 @@ moveon_if: for_i<=2 # 条件表达式，python语法
     - print: '----- 执行else -----'
 ```
 
-16. 并发处理 
+15. 并发处理
 ```yaml
 concurrent(5,10): # 并发线程数为5, 每线程处理请求数据为10
   # 每次迭代要执行的子步骤
@@ -265,12 +261,12 @@ concurrent(5,10): # 并发线程数为5, 每线程处理请求数据为10
       url: https://www.baidu.com
 ```
 
-17. include: 包含其他步骤文件，如记录公共的步骤，或记录配置数据(如用户名密码); 
+16. include: 包含其他步骤文件，如记录公共的步骤，或记录配置数据(如用户名密码);
 ```yaml
 include: part-common.yml
 ```
 
-18. set_vars: 设置变量; 
+17. set_vars: 设置变量;
 ```yaml
 set_vars:
   name: shi
@@ -278,12 +274,12 @@ set_vars:
   birthday: 5-27
 ```
 
-19. print_vars: 打印所有变量; 
+18. print_vars: 打印所有变量;
 ```yaml
 print_vars:
 ```
 
-20. exec: 执行命令, 可用于执行 HttpBoot/SeleniumBoot/AppiumBoot/MiniumBoot 等命令，以便打通多端的用例流程
+19. exec: 执行命令, 可用于执行 HttpBoot/SeleniumBoot/AppiumBoot/MiniumBoot 等命令，以便打通多端的用例流程
 ```yaml
 exec: ls
 exec: SeleniumBoot test.yml

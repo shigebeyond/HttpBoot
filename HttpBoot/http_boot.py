@@ -59,8 +59,7 @@ class HttpBoot(YamlBoot):
         # 动作映射函数
         actions = {
             'base_url': self.base_url,
-            'common_data': self.common_data,
-            'common_headers': self.common_headers,
+            'common_req': self.common_req,
             'get': self.get,
             'post': self.post,
             'upload': self.upload,
@@ -75,9 +74,11 @@ class HttpBoot(YamlBoot):
         # 基础url
         self._base_url = None
         # 公共请求参数
-        self._common_data = None
-        # 公共请求头
-        self._common_headers = None
+        self._common_req = {
+            'data': None,
+            'headers': None,
+            'json': None,
+        }
         # 当前url
         self.curr_url = None
         # 当前session
@@ -167,45 +168,55 @@ class HttpBoot(YamlBoot):
         return url
 
     # 设置公共请求参数
-    # :param data
-    def common_data(self, data):
-        # self.session.params = replace_var(data, False) # 只挂在url的query参数中
-        self._common_data = replace_var(data, False) # 如果是get请求, 则挂在query参数, 否则挂在post参数中
+    # :param req
+    def common_req(self, req):
+        #  # self.session.headers = replace_var(req['headers'], False)
+        # self.session.params = replace_var(req['data'], False) # 只挂在url的query参数中
+        self._common_req.update(replace_var(req, False)) # 如果是get请求, 则挂在query参数, 否则挂在post参数中
 
-    # 构建参数
+    # 构建post参数
     def _get_data(self, config):
         if 'data' not in config:
-            return self._common_data
+            return self._common_req['data']
 
         # 当前参数
         curr_data = replace_var(config['data'], False)
         # 合并公共参数
-        if isinstance(self._common_data, dict):
+        if isinstance(self._common_req['data'], dict):
             r = {}
-            r.update(self._common_data)
+            r.update(self._common_req['data'])
             r.update(curr_data) # 公共参数会被当前参数覆盖
             return r
 
         return curr_data
 
-    # 设置公共请求头
-    # :param headers
-    def common_headers(self, headers):
-        # 经测试:两种实现是一样效果的
-        # self.session.headers = replace_var(headers, False)
-        self._common_headers = replace_var(headers, False)
+    # 构建json参数
+    def _get_json(self, config):
+        if 'json' not in config:
+            return self._common_req['json']
+
+        # 当前参数
+        curr_json = replace_var(config['json'], False)
+        # 合并公共参数
+        if isinstance(self._common_req['json'], dict):
+            r = {}
+            r.update(self._common_req['json'])
+            r.update(curr_json) # 公共参数会被当前参数覆盖
+            return r
+
+        return curr_json
 
     # 构建参数
     def _get_headers(self, config):
         if 'headers' not in config:
-            return self._common_headers
+            return self._common_req['headers']
 
         # 当前参数
         curr_headers = replace_var(config['headers'], False)
         # 合并公共参数
-        if isinstance(self._common_headers, dict):
+        if isinstance(self._common_req['headers'], dict):
             r = {}
-            r.update(self._common_headers)
+            r.update(self._common_req['headers'])
             r.update(curr_headers)  # 公共参数会被当前参数覆盖
             return r
 
@@ -239,9 +250,10 @@ class HttpBoot(YamlBoot):
     def post(self, config = {}):
         url = self._get_url(config)
         data = self._get_data(config)
+        json = self._get_json(config)
         headers = self._get_headers(config)
         opt = self._get_options(config)
-        res = self.session.post(url, headers=headers, data=data, **opt)
+        res = self.session.post(url, headers=headers, data=data, json=json, **opt)
         # 解析响应
         self._analyze_response(res, config)
 
