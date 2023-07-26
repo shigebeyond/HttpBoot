@@ -1,4 +1,6 @@
-我们在安装好 HttpBoot 后, 会生成 `LocustBoot` 命令, 该命令通过接收一个yaml文件参数来驱动 locust 做压测
+我们在安装好 HttpBoot 后, 会生成 `LocustBoot` 命令, 该命令通过接收一个yaml文件参数来驱动 locust 做压测；
+
+优先使用协程来压测，以便提高并发能力，如果你的系统不支持 gevent，则使用线程来压测。
 
 ## 使用
 ```

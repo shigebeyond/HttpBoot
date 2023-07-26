@@ -5,8 +5,8 @@ import sys
 from locust import HttpUser, FastHttpUser, argument_parser, events
 from pyutilb.util import *
 from pyutilb.file import *
+from pyutilb.log import log
 from HttpBoot.http_boot import HttpBoot
-
 
 # 将步骤yml添加为locust参数, 这样locust命令才不会校验报错
 @events.init_command_line_parser.add_listener
@@ -35,8 +35,10 @@ def build_task(steps):
 # user类
 # FastHttpUser 相对于 HttpUser 能提升5-6倍的并发量; 单个locust进程(1核cpu)下，FastHttpUser 可以做到16000 qps，HttpUser 做到 4000 qps
 if hasattr(os, 'posix_spawnp'):
+    log.info('使用协程压测')
     UserClass = FastHttpUser
 else:
+    log.info('使用线程压测')
     UserClass = HttpUser
 class BootUser(UserClass):
     tasks = [build_task(config['task'])] # task下的多个步骤只当做一个任务，反正locust监控的是请求级，而不是任务级
