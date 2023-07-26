@@ -1,5 +1,5 @@
 # 1 基础url
-base_url: http://api.jym0.com/
+base_url: http://192.168.0.170:7801
 # 2 压测开始前置处理
 on_start:
   # 可包含 HttpBoot 的步骤
