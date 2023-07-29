@@ -58,6 +58,8 @@ class BootUser(UserClass):
             self.boot.step_dir = config_file[:i]
         else:
             self.boot.step_dir = os.path.dirname(os.path.abspath(config_file))
+        # 使用文件缓存
+        self.boot.use_file_cache(True)
 
     def on_start(self):
         if 'on_start' in config:
