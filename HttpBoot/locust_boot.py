@@ -23,7 +23,7 @@ options = argument_parser.parse_options(sys.argv)
 # log.debug(options.bootyml)
 
 # 读取步骤yml
-config_file = os.path.abspath(options.bootyml)
+config_file = options.bootyml
 config = read_yaml(config_file)
 
 # 根据步骤生成locust任务函数
@@ -57,7 +57,7 @@ class BootUser(UserClass):
             i = config_file.rindex('/')
             self.boot.step_dir = config_file[:i]
         else:
-            self.boot.step_dir = os.path.dirname(config_file)
+            self.boot.step_dir = os.path.dirname(os.path.abspath(config_file))
 
     def on_start(self):
         if 'on_start' in config:
