@@ -46,6 +46,7 @@ base_url: http://api.jym0.com/
 on_start:
   # 可包含 HttpBoot 的步骤
   - print: 开始
+    log_level: error # 如果怕日志太多，则关掉调试日志
 # 3 压测过程中要执行的任务
 task:
   # 可包含 HttpBoot 的步骤

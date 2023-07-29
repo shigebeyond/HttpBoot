@@ -285,6 +285,15 @@ exec: ls
 exec: SeleniumBoot test.yml
 ```
 
+20. log_level: 设置日志等级，在LocustBoot压测时建议设为error
+```yaml
+log_level: debug
+log_level: warn
+log_level: info
+log_level: error
+log_level: fatal
+```
+
 ## 校验器
 只针对 get/post/upload 有发送http请求的动作, 主要是为了校验响应的内容
 
