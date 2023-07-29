@@ -16,7 +16,7 @@ import threading
 from pyutilb import YamlBoot, BreakException, ocr_youdao
 from pyutilb.log import log
 if hasattr(os, 'posix_spawnp'):
-    import gevent
+    import gevent # 检查安装协程库
     from locust.clients import HttpSession
 
 # 改造 requests.Session.request() -- 支持打印curl + fix get请求不能传递data + fix不能传递cookie

@@ -52,6 +52,12 @@ class BootUser(UserClass):
         self.boot = HttpBoot()
         # 改写session
         self.boot.session = self.client
+        # 步骤文件目录: 如果不设置，则无法执行include动作
+        if is_http_file(config_file):
+            i = config_file.rindex('/')
+            self.boot.step_dir = config_file[:i]
+        else:
+            self.boot.step_dir = os.path.dirname(config_file)
 
     def on_start(self):
         if 'on_start' in config:
